@@ -4,16 +4,17 @@ A deterministic, rule-driven generator of synthetic HR / IT / Facilities workflo
 pre-boarding, access provisioning, equipment delivery and exit tasks. Every status, total and
 date is derived from source records, and every state change is kept as an append-only audit event.
 
-> **Status:** Steps 1–4 complete (schema, master data, onboarding/offboarding transactions,
-> labelled anomaly injection + ground truth). Exports (JSON/SQL/manifest), metrics and the
-> reproducibility report are added in the next steps; this README is updated as they land.
+> **Status:** Steps 1–5 complete (schema, master data, onboarding/offboarding transactions,
+> labelled anomaly injection + ground truth, evaluation metrics & reporting). JSON/SQL seed
+> exports, the checksum manifest and the MySQL load are added in the next step.
 
 ## Quick start
 
 ```bash
 pip install -r requirements.txt          # only pytest; the generator uses the standard library
-python scripts/generate.py --scale starter   # 100 employees  -> output/starter/{csv,ground_truth}
-python scripts/generate.py --scale full      # 1,000 employees -> output/full/{csv,ground_truth}
+python scripts/generate.py --scale starter   # 100 employees  -> output/starter/{csv,ground_truth,reports}
+python scripts/generate.py --scale full      # 1,000 employees -> output/full/{csv,ground_truth,reports}
+python scripts/evaluate.py --scale full      # re-evaluate an existing output folder (optional)
 python -m pytest -q                          # tests
 ```
 
@@ -21,8 +22,8 @@ Options: `--seed <int>` (default **20261022** from `config/settings.json`), `--e
 (other volumes scale proportionally), `--out <dir>`, `--no-anomalies` (write the clean,
 rule-compliant baseline without injected edge cases, e.g. `--out output/full_clean`).
 Starter and full datasets come from the same generator and the same seed; only the scale
-parameter differs. The command exits non-zero if any structural check fails or if the rule
-detector does not reproduce the ground truth exactly.
+parameter differs. `generate.py` evaluates the files it has just written and exits non-zero if
+the evaluation verdict is FAIL (see "Evaluation metrics and reporting").
 
 Output layout:
 
@@ -30,6 +31,8 @@ Output layout:
 output/<scale>/csv/<table>.csv              input tables (what a consumer / model sees)
 output/<scale>/ground_truth/anomalies.csv   labels for injected anomalies (kept separate)
 output/<scale>/ground_truth/anomalies.json  same, plus seed / scale / requested vs injected counts
+output/<scale>/reports/evaluation_report.md    human-readable evaluation (verdict, metrics, KPIs)
+output/<scale>/reports/evaluation_report.json  the same, machine-readable
 ```
 
 ## Project layout
@@ -51,10 +54,15 @@ src/orchestrator/
     anomalies.py                labelled edge-case injection -> ground truth
     pipeline.py                 stage orchestration
   validation/structural.py      schema-driven PK / FK / enum / type / pattern / uniqueness checks
-  validation/rules.py           business-rule detector (reads input tables only) + evaluation
+  validation/rules.py           business-rule detector (reads input tables only) + P / R / F1
+  validation/consistency.py     date ordering, arithmetic reconciliation, lifecycle, duplicate checks
+  metrics/kpis.py               workflow KPIs and scenario coverage
+  metrics/evaluation.py         evaluation report (JSON + Markdown)
+  datasets.py                   typed loader for published CSV / ground truth; content fingerprints
   export/csv_writer.py          CSV export (stable formatting for checksums)
   export/ground_truth_writer.py ground-truth CSV / JSON export
-scripts/generate.py             generator command
+scripts/generate.py             generator command (also writes the evaluation report)
+scripts/evaluate.py             evaluate an existing output folder
 tests/                          pytest suite
 ```
 
@@ -145,6 +153,45 @@ require removing mandatory access or treating SSO as an untracked birthright acc
 exclude the most critical access from approval and reconciliation controls. Business rules take
 precedence over suggested counts; optional-request and other rates are tunable in `config/settings.json`.
 
+## Evaluation metrics and reporting (Step 5)
+
+`generate.py` (or `evaluate.py`) reads the **published files** back from disk: `csv/` plus the
+separate `ground_truth/`. It regenerates the clean baseline in memory from the same seed and writes
+`reports/evaluation_report.{md,json}`. The report contains no timestamps, so reruns are
+byte-identical. It has these sections:
+
+| Section | What it measures |
+|---|---|
+| Verdict | PASS only if: structural checks all pass, the clean baseline has 0 consistency violations and 0 detector findings, every violation in the published data is explained by ground truth, and detector micro-F1 = 1.0 |
+| Volumes | rows per table vs the brief's suggested volumes |
+| Injected anomalies | counts by issue type x severity (CRITICAL / HIGH / MEDIUM / LOW), sub-types, requested vs injected (shortfall) |
+| Detector evaluation | per type: expected, detected, TP, FP, FN, precision, recall, F1; micro and macro averages; recall by severity; findings on the clean baseline |
+| Validation (brief Step 8) | structural checks (PK uniqueness, FK integrity, required, types, enums, ID patterns, uniqueness) and consistency checks: date ordering, arithmetic reconciliation (every stored derived value is re-derived and compared; inventory vs assignments; exit revocation / recovery completeness), lifecycle transitions (audit event chains), duplicates. Each violation is *explained* (referenced by a ground-truth record) or *unexplained* |
+| Impact of anomalies on KPIs | clean baseline vs published value and delta for reconciliation-sensitive KPIs |
+| Workflow KPIs | day-one readiness, delayed starts, withdrawals, cycle times, task on-time rate by team, rejection rate, override audit linkage, access-to-employment reconciliation, revocation SLA, urgent same-day revocation, asset recovery, utilization, acknowledgement |
+| Scenario coverage | counts of normal / boundary / exception / failure (injected) scenarios present |
+
+Metric conventions: precision = TP / (TP + FP), recall = TP / (TP + FN), F1 = harmonic mean;
+precision is 1.0 when nothing is flagged and recall is 1.0 when nothing is expected. Micro
+averages pool TP / FP / FN across types; macro averages are the mean of per-type values. KPI
+definitions are documented in `metrics/kpis.py`.
+
+Current results (seed 20261022):
+
+| | Starter | Full |
+|---|---|---|
+| Verdict | PASS | PASS |
+| Anomalies (CRITICAL / HIGH / MEDIUM / LOW) | 14 (3 / 3 / 6 / 2) | 50 (10 / 10 / 20 / 10) |
+| Detector micro precision / recall / F1 | 1.0 / 1.0 / 1.0 | 1.0 / 1.0 / 1.0 |
+| Clean-baseline detector findings | 0 | 0 |
+| Consistency violations: published (all explained) / clean | 18 / 0 | 67 / 0 |
+
+The detector is evaluated against labels produced by the same project, so a perfect score shows
+that labels, injected rows and documented rules agree. It is not evidence of performance on
+unseen real-world data. Tests prove the metrics react to errors: dropping a type or adding a false
+alarm lowers precision / recall / F1; unlabelled corruption shows up as *unexplained* violations;
+deleting the ground-truth folder turns every anomaly into a false positive and the verdict into FAIL.
+
 ## Assumptions
 
 1. **Snapshot model.** The dataset is a point-in-time snapshot at **2026-10-22**. No recorded fact
@@ -175,6 +222,13 @@ precedence over suggested counts; optional-request and other rates are tunable i
     look like ordinary operational events; only the separate ground truth identifies them.
 13. `RECOVERED_ASSET_REMAINS_ASSIGNED` is isolated per asset, not per employee: one leaver may also
     carry a `TERMINATED_EMPLOYEE_RETAINS_GRANT` anomaly on a different record.
+14. Evaluation regenerates the clean baseline in memory (it is not written to disk unless you run
+    `--no-anomalies`). Evaluating an output folder therefore needs the same code version, seed and scale.
+15. Day-one readiness = SSO grant active on/before the start date AND equipment (if any) delivered
+    on/before it. Identity provisioning takes 0-1 days from the start date, so about half of hires
+    are not ready on day one; this is a genuine property of the generated process, reported as-is.
+16. Recovery and revocation KPIs only include exits whose SLA window has closed by the snapshot
+    (revocation: after `revocation_due_date`; recovery: 10 days after the last working date).
 
 ## Provenance and lawful use
 

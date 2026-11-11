@@ -145,18 +145,23 @@ def detect_all(t: dict[str, list[Row]], as_of: date) -> list[Row]:
 
 
 def evaluate(findings: list[Row], ground_truth: list[Row]) -> dict[str, dict[str, Any]]:
-    """Per issue type: true/false positives, false negatives, precision, recall (matched on detection_key)."""
+    """Per issue type: TP / FP / FN, precision, recall, F1 (matched on detection_key).
+
+    Convention for empty denominators: precision = 1.0 when nothing was flagged, recall = 1.0 when
+    nothing was expected (no evidence of error), F1 = harmonic mean of the two.
+    """
     types = sorted({r["issue_type"] for r in ground_truth} | {f["issue_type"] for f in findings})
     report = {}
     for it in types:
         found = {f["detection_key"] for f in findings if f["issue_type"] == it}
         truth = {g["detection_key"] for g in ground_truth if g["issue_type"] == it}
         tp, fp, fn = len(found & truth), len(found - truth), len(truth - found)
+        precision = tp / (tp + fp) if tp + fp else 1.0
+        recall = tp / (tp + fn) if tp + fn else 1.0
+        f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
         report[it] = {
             "expected": len(truth), "detected": len(found), "true_positive": tp, "false_positive": fp,
-            "false_negative": fn,
-            "precision": round(tp / (tp + fp), 4) if tp + fp else 1.0,
-            "recall": round(tp / (tp + fn), 4) if tp + fn else 1.0,
+            "false_negative": fn, "precision": round(precision, 4), "recall": round(recall, 4), "f1": round(f1, 4),
             "false_positive_keys": sorted(found - truth), "missed_keys": sorted(truth - found),
         }
     return report
