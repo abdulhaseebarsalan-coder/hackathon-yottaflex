@@ -404,6 +404,35 @@ TABLES: list[Table] = [
 TABLE_BY_NAME: dict[str, Table] = {t.name: t for t in TABLES}
 LOAD_ORDER: list[str] = [t.name for t in TABLES]
 
+
+def foreign_keys() -> list[tuple[str, str, str, str]]:
+    """All FKs as (child_table, child_column, parent_table, parent_column)."""
+    out = []
+    for t in TABLES:
+        for f in t.fields:
+            if f.fk:
+                pt, pc = f.fk.split(".")
+                out.append((t.name, f.name, pt, pc))
+    return out
+
+
+def deferred_foreign_keys() -> list[tuple[str, str, str, str]]:
+    """FKs that point to a table loaded at the same position or later.
+
+    These cannot be declared inline in CREATE TABLE (forward reference / cycle), so the DDL
+    creates them with ALTER TABLE ... ADD CONSTRAINT after all rows are loaded; MySQL then
+    validates every existing row, so integrity is still fully enforced.
+      * employee.manager_id        -> manager       (true cycle: manager.employee_id -> employee)
+      * access_grant.override_event_id -> audit_event (forward reference; audit_event is loaded last)
+    """
+    pos = {name: i for i, name in enumerate(LOAD_ORDER)}
+    return [fk for fk in foreign_keys() if pos[fk[2]] >= pos[fk[0]]]
+
+
+def inline_foreign_keys() -> list[tuple[str, str, str, str]]:
+    deferred = set(deferred_foreign_keys())
+    return [fk for fk in foreign_keys() if fk not in deferred]
+
 # Documented cardinalities (also rendered into docs/er_diagram.md).
 RELATIONSHIPS: list[tuple[str, str, str, str]] = [
     # (parent, child, cardinality, note)
