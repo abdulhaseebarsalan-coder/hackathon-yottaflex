@@ -4,22 +4,33 @@ A deterministic, rule-driven generator of synthetic HR / IT / Facilities workflo
 pre-boarding, access provisioning, equipment delivery and exit tasks. Every status, total and
 date is derived from source records, and every state change is kept as an append-only audit event.
 
-> **Status:** Steps 1–3 complete (schema, master data, onboarding/offboarding transactions).
-> Labelled anomaly injection + ground truth, exports (JSON/SQL/manifest), metrics and the
-> reproducibility report are being added in the next steps; this README is updated as they land.
+> **Status:** Steps 1–4 complete (schema, master data, onboarding/offboarding transactions,
+> labelled anomaly injection + ground truth). Exports (JSON/SQL/manifest), metrics and the
+> reproducibility report are added in the next steps; this README is updated as they land.
 
 ## Quick start
 
 ```bash
 pip install -r requirements.txt          # only pytest; the generator uses the standard library
-python scripts/generate.py --scale starter   # 100 employees  -> output/starter/csv
-python scripts/generate.py --scale full      # 1,000 employees -> output/full/csv
+python scripts/generate.py --scale starter   # 100 employees  -> output/starter/{csv,ground_truth}
+python scripts/generate.py --scale full      # 1,000 employees -> output/full/{csv,ground_truth}
 python -m pytest -q                          # tests
 ```
 
 Options: `--seed <int>` (default **20261022** from `config/settings.json`), `--employees <n>`
-(other volumes scale proportionally), `--out <dir>`. Starter and full datasets come from the
-same generator and the same seed; only the scale parameter differs.
+(other volumes scale proportionally), `--out <dir>`, `--no-anomalies` (write the clean,
+rule-compliant baseline without injected edge cases, e.g. `--out output/full_clean`).
+Starter and full datasets come from the same generator and the same seed; only the scale
+parameter differs. The command exits non-zero if any structural check fails or if the rule
+detector does not reproduce the ground truth exactly.
+
+Output layout:
+
+```
+output/<scale>/csv/<table>.csv              input tables (what a consumer / model sees)
+output/<scale>/ground_truth/anomalies.csv   labels for injected anomalies (kept separate)
+output/<scale>/ground_truth/anomalies.json  same, plus seed / scale / requested vs injected counts
+```
 
 ## Project layout
 
@@ -37,9 +48,12 @@ src/orchestrator/
     access.py                   access grants: request -> approval -> provisioning -> revocation
     assets.py                   inventory, assignments, acknowledgement, recovery
     derive.py                   all derived values (statuses, totals, percentages, due dates)
+    anomalies.py                labelled edge-case injection -> ground truth
     pipeline.py                 stage orchestration
   validation/structural.py      schema-driven PK / FK / enum / type / pattern / uniqueness checks
+  validation/rules.py           business-rule detector (reads input tables only) + evaluation
   export/csv_writer.py          CSV export (stable formatting for checksums)
+  export/ground_truth_writer.py ground-truth CSV / JSON export
 scripts/generate.py             generator command
 tests/                          pytest suite
 ```
@@ -82,6 +96,40 @@ still enforced without disabling FK checks.
    once the revocation SLA has passed. *(Currently enforced by tests; reported by the validator next.)*
 8. **Derived values** are computed from source records only (`generator/derive.py`).
 
+## Anomaly injection and ground truth (Step 4)
+
+Pipeline: **clean baseline -> derive -> inject labelled anomalies -> derive again**. The baseline
+passes every business rule (asserted by the Step 3 tests on the `--no-anomalies` dataset); the
+injected dataset differs from it *only* in rows listed in the ground truth (asserted by test).
+
+| Issue type | Rule | Severity | What is injected | Expected decision |
+|---|---|---|---|---|
+| `ACCESS_BEFORE_START_OR_APPROVAL` | RULE-ACCESS-01 | HIGH | grant provisioning moved before the start date (`BEFORE_START`) or before approval (`BEFORE_APPROVAL`), with no override event | suspend until start / revoke pending approval |
+| `DUPLICATE_ASSET_ASSIGNMENT` | RULE-ASSET-01 | MEDIUM | an asset still held by one employee is issued to a second employee | recall from second holder |
+| `TERMINATED_EMPLOYEE_RETAINS_GRANT` | RULE-ACCESS-02 | CRITICAL | one exit revocation (and its `GRANT_REVOKED` event) is missing after the SLA | revoke immediately, review logs |
+| `TASK_DEPENDENCY_CYCLE` | RULE-TASK-01 | MEDIUM | a back-edge dependency makes a task wait for its own downstream task | remove the invalid dependency |
+| `RECOVERED_ASSET_REMAINS_ASSIGNED` | RULE-ASSET-02 | LOW | asset recovered into stock (`ASSET_RETURNED` kept) but its assignment left open | close assignment from the recovery event |
+
+Each ground-truth record has: `anomaly_id`, `issue_type`, `sub_type`, `severity`, `rule_id`,
+`entity_type`, `entity_id`, `detection_key`, `employee_id`, `case_id`, `related_ids`,
+`field_changes` (exact before -> after values), `expected_decision`, `description`.
+
+Guarantees:
+- **Deterministic:** own seeded RNG stream (`<seed>:anomalies`); same seed -> identical labels.
+- **Separate:** labels live only in `ground_truth/`; input tables have no label columns and audit
+  reasons contain no label text.
+- **No silent corruption:** existing IDs are never renumbered. New rows/events take the next free
+  ID, and a removed `GRANT_REVOKED` event leaves a gap that is recorded in the ground truth.
+- **Structurally valid:** anomalies break business rules, never PK / FK / enum integrity.
+- **Snapshot-safe:** no injected fact is dated after 2026-10-22.
+- **Isolated:** each grant / asset / case carries at most one anomaly, so detection is unambiguous.
+- **Measured:** `validation/rules.py` detects violations from the input tables alone. It finds nothing
+  on the clean baseline, and precision = recall = 1.0 per type on the published datasets.
+
+Volume: `anomalies_per_type` (full 10, starter 3). Full scale injects exactly 10 of each type (50).
+Starter injects 14: only 2 assets qualify for `RECOVERED_ASSET_REMAINS_ASSIGNED` at 100 employees,
+and the shortfall is reported in `anomalies.json` rather than fabricated.
+
 ## Volumes
 
 | Entity | Suggested | Generated (full, seed 20261022) |
@@ -122,6 +170,11 @@ precedence over suggested counts; optional-request and other rates are tunable i
 10. Asset purchase dates are never earlier than 2017-01-01 (start of the HRIS baseline).
 11. Audit timestamps are causal: events triggered by a task are stamped relative to that task's
     start/completion timestamps; case events bracket their tasks.
+12. Injected anomalies model process failures inside the systems of record (e.g. an engineer
+    provisioning early, a missed revocation, an unclosed assignment). Their audit events therefore
+    look like ordinary operational events; only the separate ground truth identifies them.
+13. `RECOVERED_ASSET_REMAINS_ASSIGNED` is isolated per asset, not per employee: one leaver may also
+    carry a `TERMINATED_EMPLOYEE_RETAINS_GRANT` anomaly on a different record.
 
 ## Provenance and lawful use
 

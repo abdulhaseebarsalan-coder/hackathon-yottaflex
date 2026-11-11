@@ -80,6 +80,8 @@ class GenContext:
     counters: dict[str, ids.Counter] = field(default_factory=dict)
     # Generator-internal state (never exported, never used as a label).
     plan: dict[str, Any] = field(default_factory=dict)
+    # Labels for injected anomalies. Exported separately; never written into input tables.
+    ground_truth: list[Row] = field(default_factory=list)
 
     def rng(self, stage: str) -> random.Random:
         """Independent, reproducible RNG per stage: changing one stage never shifts another's values."""

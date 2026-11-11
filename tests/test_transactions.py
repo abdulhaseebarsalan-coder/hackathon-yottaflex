@@ -12,6 +12,12 @@ from orchestrator.schema import TABLES
 
 
 @pytest.fixture(scope="module")
+def full(full_clean):
+    """Business rules are asserted on the clean baseline; injected anomalies are covered in test_anomalies.py."""
+    return full_clean
+
+
+@pytest.fixture(scope="module")
 def t(full):
     return full.tables
 

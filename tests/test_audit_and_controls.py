@@ -19,6 +19,12 @@ import pytest
 
 
 @pytest.fixture(scope="module")
+def full(full_clean):
+    """Business rules are asserted on the clean baseline; injected anomalies are covered in test_anomalies.py."""
+    return full_clean
+
+
+@pytest.fixture(scope="module")
 def t(full):
     return full.tables
 
@@ -275,7 +281,7 @@ def test_pending_withdrawn_return_stays_open_without_fabricated_event():
     from orchestrator.config import load_config
     from orchestrator.generator.pipeline import generate
 
-    ctx = generate(load_config("full", seed=8))
+    ctx = generate(load_config("full", seed=8), inject=False)
     people = ctx.plan["people"]
     pending = [s for s in ctx.tables["asset_assignment"]
                if people[s["employee_id"]]["withdrawn_on"] and not s["returned_date"] and not s["lost_reported_date"]]
