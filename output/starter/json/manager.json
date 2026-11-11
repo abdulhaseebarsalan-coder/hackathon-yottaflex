@@ -1,0 +1,15 @@
+{"table": "manager", "primary_key": "manager_id", "row_count": 13, "columns": ["manager_id", "employee_id", "department_id", "manager_level", "effective_from", "effective_to", "manager_status"], "rows": [
+{"manager_id": "MGR-0001", "employee_id": "EMP-000001", "department_id": "DEPT-001", "manager_level": "EXECUTIVE", "effective_from": "2017-01-20", "effective_to": null, "manager_status": "ACTIVE"},
+{"manager_id": "MGR-0002", "employee_id": "EMP-000002", "department_id": "DEPT-009", "manager_level": "DIRECTOR", "effective_from": "2017-05-05", "effective_to": null, "manager_status": "ACTIVE"},
+{"manager_id": "MGR-0003", "employee_id": "EMP-000003", "department_id": "DEPT-003", "manager_level": "DIRECTOR", "effective_from": "2018-01-09", "effective_to": null, "manager_status": "ACTIVE"},
+{"manager_id": "MGR-0004", "employee_id": "EMP-000004", "department_id": "DEPT-010", "manager_level": "DIRECTOR", "effective_from": "2018-02-03", "effective_to": null, "manager_status": "ACTIVE"},
+{"manager_id": "MGR-0005", "employee_id": "EMP-000005", "department_id": "DEPT-004", "manager_level": "DIRECTOR", "effective_from": "2018-02-24", "effective_to": null, "manager_status": "ACTIVE"},
+{"manager_id": "MGR-0006", "employee_id": "EMP-000007", "department_id": "DEPT-012", "manager_level": "DIRECTOR", "effective_from": "2018-09-07", "effective_to": null, "manager_status": "ACTIVE"},
+{"manager_id": "MGR-0007", "employee_id": "EMP-000008", "department_id": "DEPT-011", "manager_level": "DIRECTOR", "effective_from": "2018-10-22", "effective_to": null, "manager_status": "ACTIVE"},
+{"manager_id": "MGR-0008", "employee_id": "EMP-000009", "department_id": "DEPT-006", "manager_level": "DIRECTOR", "effective_from": "2019-01-21", "effective_to": null, "manager_status": "ACTIVE"},
+{"manager_id": "MGR-0009", "employee_id": "EMP-000011", "department_id": "DEPT-005", "manager_level": "DIRECTOR", "effective_from": "2019-09-29", "effective_to": null, "manager_status": "ACTIVE"},
+{"manager_id": "MGR-0010", "employee_id": "EMP-000012", "department_id": "DEPT-007", "manager_level": "DIRECTOR", "effective_from": "2019-10-18", "effective_to": null, "manager_status": "ACTIVE"},
+{"manager_id": "MGR-0011", "employee_id": "EMP-000013", "department_id": "DEPT-008", "manager_level": "DIRECTOR", "effective_from": "2019-10-29", "effective_to": null, "manager_status": "ACTIVE"},
+{"manager_id": "MGR-0012", "employee_id": "EMP-000014", "department_id": "DEPT-002", "manager_level": "DIRECTOR", "effective_from": "2019-11-03", "effective_to": null, "manager_status": "ACTIVE"},
+{"manager_id": "MGR-0013", "employee_id": "EMP-000015", "department_id": "DEPT-002", "manager_level": "SENIOR_MANAGER", "effective_from": "2022-06-17", "effective_to": null, "manager_status": "ACTIVE"}
+]}

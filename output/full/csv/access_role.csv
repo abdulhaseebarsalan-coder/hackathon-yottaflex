@@ -1,0 +1,16 @@
+access_role_id,access_role_name,target_system,privilege_level,approver_type,contractor_allowed
+AR-001,Corporate SSO & Email,Identity Provider,STANDARD,MANAGER,true
+AR-002,Remote Access VPN,Network,STANDARD,MANAGER,true
+AR-003,Source Code Repository - Write,Code Hosting,ELEVATED,MANAGER,true
+AR-004,Cloud Console - Developer,Cloud Platform,ELEVATED,MANAGER_AND_SYSTEM_OWNER,true
+AR-005,Production Database - Admin,Production Database,PRIVILEGED,MANAGER_AND_SYSTEM_OWNER,false
+AR-006,CRM - Sales User,CRM,STANDARD,MANAGER,true
+AR-007,Support Desk - Agent,Ticketing,STANDARD,MANAGER,true
+AR-008,ERP - Finance Ledger,ERP,ELEVATED,MANAGER_AND_SYSTEM_OWNER,false
+AR-009,HRIS & Payroll - Admin,HRIS,PRIVILEGED,MANAGER_AND_SYSTEM_OWNER,false
+AR-010,Marketing Automation - Editor,Marketing Platform,STANDARD,MANAGER,true
+AR-011,BI Dashboards - Viewer,BI Platform,STANDARD,MANAGER,true
+AR-012,Data Warehouse - Analyst,Data Warehouse,ELEVATED,MANAGER_AND_SYSTEM_OWNER,true
+AR-013,Identity Provider - Admin,Identity Provider,PRIVILEGED,MANAGER_AND_SYSTEM_OWNER,false
+AR-014,Building Access Control - Operator,Physical Security,ELEVATED,MANAGER_AND_SYSTEM_OWNER,false
+AR-015,Contract Management - User,Contract Lifecycle,STANDARD,MANAGER,true

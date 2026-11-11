@@ -1,0 +1,812 @@
+{
+  "anomalies": {
+    "by_severity": {
+      "CRITICAL": 10,
+      "HIGH": 10,
+      "LOW": 10,
+      "MEDIUM": 20
+    },
+    "by_sub_type": {
+      "ACCESS_BEFORE_START_OR_APPROVAL/BEFORE_APPROVAL": 5,
+      "ACCESS_BEFORE_START_OR_APPROVAL/BEFORE_START": 5,
+      "DUPLICATE_ASSET_ASSIGNMENT/OVERLAPPING_OPEN_ASSIGNMENTS": 10,
+      "RECOVERED_ASSET_REMAINS_ASSIGNED/ASSIGNMENT_NOT_CLOSED": 10,
+      "TASK_DEPENDENCY_CYCLE/BACK_EDGE": 10,
+      "TERMINATED_EMPLOYEE_RETAINS_GRANT/CONTRACT_END": 4,
+      "TERMINATED_EMPLOYEE_RETAINS_GRANT/INVOLUNTARY": 1,
+      "TERMINATED_EMPLOYEE_RETAINS_GRANT/VOLUNTARY": 5
+    },
+    "by_type": {
+      "ACCESS_BEFORE_START_OR_APPROVAL": 10,
+      "DUPLICATE_ASSET_ASSIGNMENT": 10,
+      "RECOVERED_ASSET_REMAINS_ASSIGNED": 10,
+      "TASK_DEPENDENCY_CYCLE": 10,
+      "TERMINATED_EMPLOYEE_RETAINS_GRANT": 10
+    },
+    "by_type_and_severity": {
+      "ACCESS_BEFORE_START_OR_APPROVAL": {
+        "HIGH": 10
+      },
+      "DUPLICATE_ASSET_ASSIGNMENT": {
+        "MEDIUM": 10
+      },
+      "RECOVERED_ASSET_REMAINS_ASSIGNED": {
+        "LOW": 10
+      },
+      "TASK_DEPENDENCY_CYCLE": {
+        "MEDIUM": 10
+      },
+      "TERMINATED_EMPLOYEE_RETAINS_GRANT": {
+        "CRITICAL": 10
+      }
+    },
+    "requested_per_type": 10,
+    "shortfall": {},
+    "total": 50
+  },
+  "dataset": {
+    "anomalies_injected": true,
+    "as_of_date": "2026-10-22",
+    "dataset_sha256": "08f53e0eefc3d7a78c7cff0b15ecb6d73708e90968171d51cad2df0c5d02a6c7",
+    "employees": 1000,
+    "ground_truth_sha256": "eda76455cc374b0701156bdff9c6cfae6311801bead6e0b103f19a0a86de6b9f",
+    "scale": "full",
+    "seed": 20261022
+  },
+  "detection": {
+    "clean_baseline": {
+      "examples": [],
+      "false_positives_by_type": {},
+      "findings": 0
+    },
+    "published_dataset": {
+      "by_severity": {
+        "CRITICAL": {
+          "detected": 10,
+          "expected": 10,
+          "recall": 1.0
+        },
+        "HIGH": {
+          "detected": 10,
+          "expected": 10,
+          "recall": 1.0
+        },
+        "LOW": {
+          "detected": 10,
+          "expected": 10,
+          "recall": 1.0
+        },
+        "MEDIUM": {
+          "detected": 20,
+          "expected": 20,
+          "recall": 1.0
+        }
+      },
+      "findings": 50,
+      "macro": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "micro": {
+        "f1": 1.0,
+        "false_negative": 0,
+        "false_positive": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "true_positive": 50
+      },
+      "per_type": {
+        "ACCESS_BEFORE_START_OR_APPROVAL": {
+          "detected": 10,
+          "expected": 10,
+          "f1": 1.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "false_positive_keys": [],
+          "missed_keys": [],
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positive": 10
+        },
+        "DUPLICATE_ASSET_ASSIGNMENT": {
+          "detected": 10,
+          "expected": 10,
+          "f1": 1.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "false_positive_keys": [],
+          "missed_keys": [],
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positive": 10
+        },
+        "RECOVERED_ASSET_REMAINS_ASSIGNED": {
+          "detected": 10,
+          "expected": 10,
+          "f1": 1.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "false_positive_keys": [],
+          "missed_keys": [],
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positive": 10
+        },
+        "TASK_DEPENDENCY_CYCLE": {
+          "detected": 10,
+          "expected": 10,
+          "f1": 1.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "false_positive_keys": [],
+          "missed_keys": [],
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positive": 10
+        },
+        "TERMINATED_EMPLOYEE_RETAINS_GRANT": {
+          "detected": 10,
+          "expected": 10,
+          "f1": 1.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "false_positive_keys": [],
+          "missed_keys": [],
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positive": 10
+        }
+      }
+    }
+  },
+  "kpi_impact_of_anomalies": [
+    {
+      "clean_baseline": 1.0,
+      "delta": -0.0052,
+      "kpi": "Active grants reconciled to active employment",
+      "published_dataset": 0.9948
+    },
+    {
+      "clean_baseline": 0,
+      "delta": 10,
+      "kpi": "Active grants NOT reconciled",
+      "published_dataset": 10
+    },
+    {
+      "clean_baseline": 0.9351,
+      "delta": -0.1299,
+      "kpi": "Exits revoked within SLA",
+      "published_dataset": 0.8052
+    },
+    {
+      "clean_baseline": 0,
+      "delta": 10,
+      "kpi": "Exits with grants unrevoked after due date",
+      "published_dataset": 10
+    },
+    {
+      "clean_baseline": 0.9857,
+      "delta": -0.0571,
+      "kpi": "Exit asset recovery rate",
+      "published_dataset": 0.9286
+    },
+    {
+      "clean_baseline": 0.8142,
+      "delta": 0.0,
+      "kpi": "Asset utilization (ASSIGNED / total)",
+      "published_dataset": 0.8142
+    },
+    {
+      "clean_baseline": 0.5421,
+      "delta": 0.0013,
+      "kpi": "Day-one readiness",
+      "published_dataset": 0.5434
+    }
+  ],
+  "kpis": {
+    "clean_baseline": {
+      "access": {
+        "active_grants_not_reconciled": 0,
+        "active_grants_reconciled_to_active_employment": {
+          "denominator": 1913,
+          "numerator": 1913,
+          "rate": 1.0
+        },
+        "approved_overrides": 25,
+        "by_request_reason": {
+          "EXISTING_BASELINE": 284,
+          "NEW_HIRE": 2153,
+          "ROLE_CHANGE": 19
+        },
+        "by_status": {
+          "ACTIVE": 1913,
+          "APPROVED": 216,
+          "CANCELLED": 73,
+          "REJECTED": 21,
+          "REQUESTED": 20,
+          "REVOKED": 213
+        },
+        "grants": 2456,
+        "overrides_with_linked_audit_event": {
+          "denominator": 25,
+          "numerator": 25,
+          "rate": 1.0
+        },
+        "rejection_rate": {
+          "denominator": 2433,
+          "numerator": 21,
+          "rate": 0.0086
+        }
+      },
+      "assets": {
+        "acknowledgement_rate": {
+          "denominator": 1062,
+          "numerator": 1011,
+          "rate": 0.952
+        },
+        "assets": 1200,
+        "by_status": {
+          "ASSIGNED": 977,
+          "IN_STOCK": 219,
+          "LOST": 1,
+          "RETIRED": 3
+        },
+        "by_type": {
+          "LAPTOP": 864,
+          "MONITOR": 136,
+          "PHONE": 109,
+          "SECURITY_KEY": 91
+        },
+        "inventory_value_usd": 1747380.0,
+        "reissued_assets": 78,
+        "utilization_rate": {
+          "denominator": 1200,
+          "numerator": 977,
+          "rate": 0.8142
+        }
+      },
+      "audit": {
+        "by_entity_type": {
+          "access_grant": 7697,
+          "asset": 2366,
+          "asset_assignment": 2073,
+          "employee": 2009,
+          "offboarding_case": 184,
+          "onboarding_case": 1719,
+          "task": 14778
+        },
+        "events": 30826
+      },
+      "offboarding": {
+        "asset_recovery_rate": {
+          "denominator": 70,
+          "numerator": 69,
+          "rate": 0.9857
+        },
+        "assets_reported_lost": 1,
+        "by_exit_type": {
+          "CONTRACT_END": 44,
+          "INVOLUNTARY": 8,
+          "URGENT_TERMINATION": 7,
+          "VOLUNTARY": 49
+        },
+        "by_status": {
+          "COMPLETED": 76,
+          "IN_PROGRESS": 32
+        },
+        "cases": 108,
+        "revocation_sla_rate": {
+          "denominator": 77,
+          "numerator": 72,
+          "rate": 0.9351
+        },
+        "revoked_late_count": 5,
+        "unrevoked_after_due_count": 0,
+        "urgent_same_day_rate": {
+          "denominator": 7,
+          "numerator": 7,
+          "rate": 1.0
+        }
+      },
+      "onboarding": {
+        "avg_case_cycle_days": 34.67,
+        "avg_offer_to_start_days": 32.11,
+        "avg_start_delay_days_when_delayed": 23.68,
+        "by_status": {
+          "CANCELLED": 29,
+          "COMPLETED": 729,
+          "IN_PROGRESS": 122
+        },
+        "cases": 880,
+        "day_one_readiness_rate": {
+          "denominator": 749,
+          "numerator": 406,
+          "rate": 0.5421
+        },
+        "delayed_start_rate": {
+          "denominator": 851,
+          "numerator": 81,
+          "rate": 0.0952
+        },
+        "median_days_approval_to_provisioning": 27.0,
+        "offer_withdrawal_rate": {
+          "denominator": 880,
+          "numerator": 29,
+          "rate": 0.033
+        }
+      },
+      "tasks": {
+        "by_status": {
+          "BLOCKED": 294,
+          "CANCELLED": 121,
+          "COMPLETED": 7287,
+          "IN_PROGRESS": 68,
+          "READY": 229
+        },
+        "on_time_rate": {
+          "denominator": 7287,
+          "numerator": 6530,
+          "rate": 0.8961
+        },
+        "on_time_rate_by_owner_team": {
+          "EMPLOYEE": {
+            "denominator": 713,
+            "numerator": 521,
+            "rate": 0.7307
+          },
+          "FACILITIES": {
+            "denominator": 754,
+            "numerator": 754,
+            "rate": 1.0
+          },
+          "HR": {
+            "denominator": 2630,
+            "numerator": 2630,
+            "rate": 1.0
+          },
+          "IT": {
+            "denominator": 2329,
+            "numerator": 1764,
+            "rate": 0.7574
+          },
+          "MANAGER": {
+            "denominator": 861,
+            "numerator": 861,
+            "rate": 1.0
+          }
+        },
+        "open_overdue": 13,
+        "tasks": 7999
+      }
+    },
+    "published_dataset": {
+      "access": {
+        "active_grants_not_reconciled": 10,
+        "active_grants_reconciled_to_active_employment": {
+          "denominator": 1923,
+          "numerator": 1913,
+          "rate": 0.9948
+        },
+        "approved_overrides": 25,
+        "by_request_reason": {
+          "EXISTING_BASELINE": 284,
+          "NEW_HIRE": 2153,
+          "ROLE_CHANGE": 19
+        },
+        "by_status": {
+          "ACTIVE": 1923,
+          "APPROVED": 216,
+          "CANCELLED": 73,
+          "REJECTED": 21,
+          "REQUESTED": 20,
+          "REVOKED": 203
+        },
+        "grants": 2456,
+        "overrides_with_linked_audit_event": {
+          "denominator": 25,
+          "numerator": 25,
+          "rate": 1.0
+        },
+        "rejection_rate": {
+          "denominator": 2433,
+          "numerator": 21,
+          "rate": 0.0086
+        }
+      },
+      "assets": {
+        "acknowledgement_rate": {
+          "denominator": 1072,
+          "numerator": 1011,
+          "rate": 0.9431
+        },
+        "assets": 1200,
+        "by_status": {
+          "ASSIGNED": 977,
+          "IN_STOCK": 219,
+          "LOST": 1,
+          "RETIRED": 3
+        },
+        "by_type": {
+          "LAPTOP": 864,
+          "MONITOR": 136,
+          "PHONE": 109,
+          "SECURITY_KEY": 91
+        },
+        "inventory_value_usd": 1747380.0,
+        "reissued_assets": 88,
+        "utilization_rate": {
+          "denominator": 1200,
+          "numerator": 977,
+          "rate": 0.8142
+        }
+      },
+      "audit": {
+        "by_entity_type": {
+          "access_grant": 7687,
+          "asset": 2376,
+          "asset_assignment": 2083,
+          "employee": 2009,
+          "offboarding_case": 184,
+          "onboarding_case": 1719,
+          "task": 14778
+        },
+        "events": 30836
+      },
+      "offboarding": {
+        "asset_recovery_rate": {
+          "denominator": 70,
+          "numerator": 65,
+          "rate": 0.9286
+        },
+        "assets_reported_lost": 1,
+        "by_exit_type": {
+          "CONTRACT_END": 44,
+          "INVOLUNTARY": 8,
+          "URGENT_TERMINATION": 7,
+          "VOLUNTARY": 49
+        },
+        "by_status": {
+          "COMPLETED": 76,
+          "IN_PROGRESS": 32
+        },
+        "cases": 108,
+        "revocation_sla_rate": {
+          "denominator": 77,
+          "numerator": 62,
+          "rate": 0.8052
+        },
+        "revoked_late_count": 5,
+        "unrevoked_after_due_count": 10,
+        "urgent_same_day_rate": {
+          "denominator": 7,
+          "numerator": 7,
+          "rate": 1.0
+        }
+      },
+      "onboarding": {
+        "avg_case_cycle_days": 34.67,
+        "avg_offer_to_start_days": 32.11,
+        "avg_start_delay_days_when_delayed": 23.68,
+        "by_status": {
+          "CANCELLED": 29,
+          "COMPLETED": 729,
+          "IN_PROGRESS": 122
+        },
+        "cases": 880,
+        "day_one_readiness_rate": {
+          "denominator": 749,
+          "numerator": 407,
+          "rate": 0.5434
+        },
+        "delayed_start_rate": {
+          "denominator": 851,
+          "numerator": 81,
+          "rate": 0.0952
+        },
+        "median_days_approval_to_provisioning": 27.0,
+        "offer_withdrawal_rate": {
+          "denominator": 880,
+          "numerator": 29,
+          "rate": 0.033
+        }
+      },
+      "tasks": {
+        "by_status": {
+          "BLOCKED": 296,
+          "CANCELLED": 121,
+          "COMPLETED": 7287,
+          "IN_PROGRESS": 68,
+          "READY": 227
+        },
+        "on_time_rate": {
+          "denominator": 7287,
+          "numerator": 6530,
+          "rate": 0.8961
+        },
+        "on_time_rate_by_owner_team": {
+          "EMPLOYEE": {
+            "denominator": 713,
+            "numerator": 521,
+            "rate": 0.7307
+          },
+          "FACILITIES": {
+            "denominator": 754,
+            "numerator": 754,
+            "rate": 1.0
+          },
+          "HR": {
+            "denominator": 2630,
+            "numerator": 2630,
+            "rate": 1.0
+          },
+          "IT": {
+            "denominator": 2329,
+            "numerator": 1764,
+            "rate": 0.7574
+          },
+          "MANAGER": {
+            "denominator": 861,
+            "numerator": 861,
+            "rate": 1.0
+          }
+        },
+        "open_overdue": 13,
+        "tasks": 7999
+      }
+    }
+  },
+  "report_version": 1,
+  "scenario_coverage": [
+    {
+      "category": "normal",
+      "count": 729,
+      "scenario": "Onboarding case completed"
+    },
+    {
+      "category": "normal",
+      "count": 49,
+      "scenario": "Voluntary exit"
+    },
+    {
+      "category": "normal",
+      "count": 88,
+      "scenario": "Asset re-issued after recovery"
+    },
+    {
+      "category": "boundary",
+      "count": 102,
+      "scenario": "Pre-boarding hire (start after snapshot)"
+    },
+    {
+      "category": "boundary",
+      "count": 30,
+      "scenario": "Employee serving notice (last day after snapshot)"
+    },
+    {
+      "category": "boundary",
+      "count": 81,
+      "scenario": "Delayed start"
+    },
+    {
+      "category": "boundary",
+      "count": 33,
+      "scenario": "Role change (promotion / transfer)"
+    },
+    {
+      "category": "boundary",
+      "count": 135,
+      "scenario": "Contractor"
+    },
+    {
+      "category": "boundary",
+      "count": 44,
+      "scenario": "Contract end exit"
+    },
+    {
+      "category": "exception",
+      "count": 25,
+      "scenario": "Approved early-access override (audited)"
+    },
+    {
+      "category": "exception",
+      "count": 21,
+      "scenario": "Access request rejected"
+    },
+    {
+      "category": "exception",
+      "count": 29,
+      "scenario": "Offer withdrawn (case cancelled)"
+    },
+    {
+      "category": "exception",
+      "count": 7,
+      "scenario": "Urgent termination"
+    },
+    {
+      "category": "exception",
+      "count": 8,
+      "scenario": "Involuntary exit"
+    },
+    {
+      "category": "exception",
+      "count": 1,
+      "scenario": "Asset reported lost"
+    },
+    {
+      "category": "exception",
+      "count": 3,
+      "scenario": "Asset retired (end of life)"
+    },
+    {
+      "category": "exception",
+      "count": 11,
+      "scenario": "Equipment never acknowledged (open past due)"
+    },
+    {
+      "category": "failure (injected)",
+      "count": 10,
+      "scenario": "ACCESS_BEFORE_START_OR_APPROVAL"
+    },
+    {
+      "category": "failure (injected)",
+      "count": 10,
+      "scenario": "DUPLICATE_ASSET_ASSIGNMENT"
+    },
+    {
+      "category": "failure (injected)",
+      "count": 10,
+      "scenario": "RECOVERED_ASSET_REMAINS_ASSIGNED"
+    },
+    {
+      "category": "failure (injected)",
+      "count": 10,
+      "scenario": "TASK_DEPENDENCY_CYCLE"
+    },
+    {
+      "category": "failure (injected)",
+      "count": 10,
+      "scenario": "TERMINATED_EMPLOYEE_RETAINS_GRANT"
+    }
+  ],
+  "validation": {
+    "clean_baseline": {
+      "consistency": {
+        "arithmetic_reconciliation": {
+          "by_check": {},
+          "explained_by_ground_truth": 0,
+          "unexplained": 0,
+          "unexplained_examples": [],
+          "violations": 0
+        },
+        "date_ordering": {
+          "by_check": {},
+          "explained_by_ground_truth": 0,
+          "unexplained": 0,
+          "unexplained_examples": [],
+          "violations": 0
+        },
+        "duplicates": {
+          "by_check": {},
+          "explained_by_ground_truth": 0,
+          "unexplained": 0,
+          "unexplained_examples": [],
+          "violations": 0
+        },
+        "lifecycle_transitions": {
+          "by_check": {},
+          "explained_by_ground_truth": 0,
+          "unexplained": 0,
+          "unexplained_examples": [],
+          "violations": 0
+        }
+      },
+      "structural": {
+        "checks_by_type": {
+          "enum": 29,
+          "fk_integrity": 36,
+          "id_pattern": 15,
+          "pk_unique": 15,
+          "required": 112,
+          "type": 145,
+          "unique": 8,
+          "unique_together": 3
+        },
+        "checks_failed": 0,
+        "checks_passed": 363,
+        "checks_run": 363,
+        "failures": []
+      }
+    },
+    "published_dataset": {
+      "consistency": {
+        "arithmetic_reconciliation": {
+          "by_check": {
+            "exit_recovery_complete": 4,
+            "exit_revocation_complete": 10,
+            "inventory_vs_assignments": 10
+          },
+          "explained_by_ground_truth": 24,
+          "unexplained": 0,
+          "unexplained_examples": [],
+          "violations": 24
+        },
+        "date_ordering": {
+          "by_check": {
+            "dependency_order": 8,
+            "grant_dates": 5
+          },
+          "explained_by_ground_truth": 13,
+          "unexplained": 0,
+          "unexplained_examples": [],
+          "violations": 13
+        },
+        "duplicates": {
+          "by_check": {
+            "duplicate_open_assignment": 10
+          },
+          "explained_by_ground_truth": 10,
+          "unexplained": 0,
+          "unexplained_examples": [],
+          "violations": 10
+        },
+        "lifecycle_transitions": {
+          "by_check": {
+            "lifecycle_transition": 20
+          },
+          "explained_by_ground_truth": 20,
+          "unexplained": 0,
+          "unexplained_examples": [],
+          "violations": 20
+        }
+      },
+      "structural": {
+        "checks_by_type": {
+          "enum": 29,
+          "fk_integrity": 36,
+          "id_pattern": 15,
+          "pk_unique": 15,
+          "required": 112,
+          "type": 145,
+          "unique": 8,
+          "unique_together": 3
+        },
+        "checks_failed": 0,
+        "checks_passed": 363,
+        "checks_run": 363,
+        "failures": []
+      }
+    }
+  },
+  "verdict": {
+    "clean_baseline_consistency_violations": 0,
+    "clean_baseline_detector_findings": 0,
+    "detector_micro_f1": 1.0,
+    "passed": true,
+    "structural_checks_all_passed": true,
+    "unexplained_consistency_violations": 0
+  },
+  "volume_targets": {
+    "access_grants": 1500,
+    "assets": 1200,
+    "employees": 1000,
+    "tasks": 8000
+  },
+  "volumes": {
+    "access_grant": 2456,
+    "access_role": 15,
+    "asset": 1200,
+    "asset_assignment": 1080,
+    "audit_event": 30836,
+    "department": 12,
+    "employee": 1000,
+    "employee_role_history": 1004,
+    "manager": 37,
+    "offboarding_case": 108,
+    "onboarding_case": 880,
+    "role": 50,
+    "role_access_template": 138,
+    "task": 7999,
+    "task_dependency": 8756
+  }
+}

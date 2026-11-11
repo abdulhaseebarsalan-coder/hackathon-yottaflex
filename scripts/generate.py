@@ -1,4 +1,4 @@
-"""Generate the synthetic onboarding/offboarding dataset and its evaluation report.
+"""Generate the synthetic onboarding/offboarding dataset, its exports, evaluation report and manifest.
 
 Usage:
     python scripts/generate.py --scale starter
@@ -6,8 +6,10 @@ Usage:
     python scripts/generate.py --scale full --no-anomalies --out output/full_clean   # clean baseline
     python scripts/generate.py --scale full --seed 20261022 --out output/full
 
-Writes <out>/csv/*.csv (input tables), <out>/ground_truth/anomalies.{csv,json} (labels, kept separate)
-and <out>/reports/evaluation_report.{md,json} (evaluation computed from the written files).
+Writes into <out>/:
+    csv/<table>.csv                input tables          json/<table>.json      same data as JSON
+    sql/seed.sql                   MySQL INSERTs         ground_truth/          anomaly labels (separate)
+    reports/evaluation_report.*    evaluation            manifest.json          SHA-256 of every file
 Exit code 0 = evaluation verdict PASS.
 """
 
@@ -21,10 +23,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from orchestrator.config import load_config  # noqa: E402
-from orchestrator.export.csv_writer import write_csv  # noqa: E402
-from orchestrator.export.ground_truth_writer import write_ground_truth  # noqa: E402
-from orchestrator.generator.pipeline import generate  # noqa: E402
-from orchestrator.metrics.evaluation import evaluate_and_write, summary_lines  # noqa: E402
+from orchestrator.metrics.evaluation import summary_lines  # noqa: E402
+from orchestrator.publish import publish  # noqa: E402
 
 
 def main() -> int:
@@ -42,27 +42,16 @@ def main() -> int:
     print(f"Generating scale={cfg.scale} seed={cfg.seed} employees={cfg.employees} as_of={cfg.as_of_date} "
           f"anomalies={'on' if inject else 'off'}")
 
-    ctx = generate(cfg, inject=inject)
-    write_csv(ctx.tables, out / "csv")
-    gt_dir = out / "ground_truth"
-    if inject:
-        write_ground_truth(ctx.ground_truth, gt_dir, {"seed": cfg.seed, "scale": cfg.scale,
-                                                      "as_of_date": cfg.as_of_date.isoformat(),
-                                                      **ctx.plan["anomaly_summary"]})
-    else:  # a clean dataset must not carry labels from an earlier run
-        for f in ("anomalies.csv", "anomalies.json"):
-            (gt_dir / f).unlink(missing_ok=True)
+    result = publish(cfg, out, inject=inject)
+    report, manifest = result["report"], result["manifest"]
 
     print("\nRow counts:")
-    for name, rows in ctx.tables.items():
-        print(f"  {name:<24}{len(rows):>8}")
-
-    # Evaluate what was actually written to disk (CSV + ground truth) against the clean baseline.
-    report = evaluate_and_write(out, cfg)
+    for name, n in manifest["row_counts"].items():
+        print(f"  {name:<24}{n:>8}")
     s = report["validation"]["published_dataset"]["structural"]
     print(f"\nStructural checks: {s['checks_passed']}/{s['checks_run']} passed")
     print("\n".join(summary_lines(report, out)))
-    print(f"\nWrote {out / 'csv'}" + (f", {gt_dir}" if inject else "") + f" and {out / 'reports'}")
+    print(f"\nWrote {len(manifest['files'])} files + manifest.json to {out}")
     return 0 if report["verdict"]["passed"] else 1
 
 

@@ -1,2 +1,7 @@
 # Generator, validator and exporters use only the Python standard library (3.10+).
 pytest>=8.0
+
+# Backend tier (REST API over MySQL)
+fastapi>=0.110
+uvicorn>=0.29
+PyMySQL>=1.1

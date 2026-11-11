@@ -1,0 +1,260 @@
+{
+  "dataset": {
+    "anomalies_injected": true,
+    "as_of_date": "2026-10-22",
+    "employees": 1000,
+    "scale": "full",
+    "seed": 20261022
+  },
+  "evaluation_verdict": {
+    "clean_baseline_consistency_violations": 0,
+    "clean_baseline_detector_findings": 0,
+    "detector_micro_f1": 1.0,
+    "passed": true,
+    "structural_checks_all_passed": true,
+    "unexplained_consistency_violations": 0
+  },
+  "files": [
+    {
+      "bytes": 312341,
+      "path": "csv/access_grant.csv",
+      "rows": 2456,
+      "sha256": "f04dfde1182443cb46701d29f7ac3c7ad796062bc38b517b4e5ea24514275dbc"
+    },
+    {
+      "bytes": 1231,
+      "path": "csv/access_role.csv",
+      "rows": 15,
+      "sha256": "3f153c0179a7bb9cac9e02254e18e4d3bfe380ceb659f25e10bb1faa6bf95010"
+    },
+    {
+      "bytes": 101263,
+      "path": "csv/asset.csv",
+      "rows": 1200,
+      "sha256": "ebb5a101022d4f6f0b5cdf29523fedff513cf81b012653c931f7e3a8dee44350"
+    },
+    {
+      "bytes": 104485,
+      "path": "csv/asset_assignment.csv",
+      "rows": 1080,
+      "sha256": "86b06fae9ac32b8f57073f63054094a7d3a3162fcd5bf0f5f6e69cfd37d7e6da"
+    },
+    {
+      "bytes": 4242164,
+      "path": "csv/audit_event.csv",
+      "rows": 30836,
+      "sha256": "f434ddec6c3ac2d2a5068e98dffc5655bcee62b8a5b8d20b73d389b34c894ae4"
+    },
+    {
+      "bytes": 533,
+      "path": "csv/department.csv",
+      "rows": 12,
+      "sha256": "4b9fa9452cb7a1ef826c56a40f373e5e9e54306c93f91b694900c3286c87cd99"
+    },
+    {
+      "bytes": 135244,
+      "path": "csv/employee.csv",
+      "rows": 1000,
+      "sha256": "7d64f9ac86b69e4c0890a0be1ba948bca0685d433de0adb4ea689a27da06f84c"
+    },
+    {
+      "bytes": 65823,
+      "path": "csv/employee_role_history.csv",
+      "rows": 1004,
+      "sha256": "c8a3950b914a1a5ac525f4233f2dae09e7a8b729f22595f8e895c62aebe0d4df"
+    },
+    {
+      "bytes": 2334,
+      "path": "csv/manager.csv",
+      "rows": 37,
+      "sha256": "39050658e712c5bdf9111e495a05446d5262b3a7d1f3512524ff7073757bed75"
+    },
+    {
+      "bytes": 14889,
+      "path": "csv/offboarding_case.csv",
+      "rows": 108,
+      "sha256": "cb58d8dc10a08b186c935c61a5429dd639d2bf6be9de86fea81aada39d24bcae"
+    },
+    {
+      "bytes": 118541,
+      "path": "csv/onboarding_case.csv",
+      "rows": 880,
+      "sha256": "912b1ab2a653c6d3cec3b2d238f6664270b9b0c318b8980f8bf6b57d2842a797"
+    },
+    {
+      "bytes": 3116,
+      "path": "csv/role.csv",
+      "rows": 50,
+      "sha256": "c814165dd29d1957832d41313c1e24213148a7b9cde8ec842d5f72c1811ab7e0"
+    },
+    {
+      "bytes": 4240,
+      "path": "csv/role_access_template.csv",
+      "rows": 138,
+      "sha256": "e65d64dd9f9a622b1782ff170a70818504918b505243ef7529bb7de0fc6a54fc"
+    },
+    {
+      "bytes": 1393276,
+      "path": "csv/task.csv",
+      "rows": 7999,
+      "sha256": "62e58e505c24b3018412dc964137b22789b9bdbcd6472abc1c32869ff69543d7"
+    },
+    {
+      "bytes": 683025,
+      "path": "csv/task_dependency.csv",
+      "rows": 8756,
+      "sha256": "c001dcfcea90a3ee728e0f7b045f125f793339f1fcd517c02ffe9af5a5712b58"
+    },
+    {
+      "bytes": 25208,
+      "path": "ground_truth/anomalies.csv",
+      "rows": 50,
+      "sha256": "c8d5f31b76a6f85a9222a0ac98f5a7515cf4bdd56514685c90d9246ffc1f9df1"
+    },
+    {
+      "bytes": 45861,
+      "path": "ground_truth/anomalies.json",
+      "sha256": "887c8230f3998ad1c01ec0f8ff82218028eee8bc457958efc8f51d432817cfe6"
+    },
+    {
+      "bytes": 1140289,
+      "path": "json/access_grant.json",
+      "rows": 2456,
+      "sha256": "83efabe27097ba5f2eb0f0d02d0cdef064a77150f5b580ed28a71281691f08e4"
+    },
+    {
+      "bytes": 3314,
+      "path": "json/access_role.json",
+      "rows": 15,
+      "sha256": "38b3f3cc37c578612f190343dd3b84fc396aaba0e47907c472fb0b77ed43c235"
+    },
+    {
+      "bytes": 247774,
+      "path": "json/asset.json",
+      "rows": 1200,
+      "sha256": "a0d05e59004158bbd5f96bc610dce1c0c2b92671e24280b9d3691c0c73abeffb"
+    },
+    {
+      "bytes": 370438,
+      "path": "json/asset_assignment.json",
+      "rows": 1080,
+      "sha256": "dad15e1bc60643b2a7a9c4197c95c5544e22e5386a107b92e38ebb9c1f2aaeb4"
+    },
+    {
+      "bytes": 10139288,
+      "path": "json/audit_event.json",
+      "rows": 30836,
+      "sha256": "9ce7aa3ed38fcd9dd3efee4861bc37fa05d8e00918ef0fffbb6678d285601b52"
+    },
+    {
+      "bytes": 1639,
+      "path": "json/department.json",
+      "rows": 12,
+      "sha256": "f34f1b3bb3d4537c72b78db95b9634781fb83c6f5b2084d3fd37e53c1628a47f"
+    },
+    {
+      "bytes": 418915,
+      "path": "json/employee.json",
+      "rows": 1000,
+      "sha256": "346930848045e24c558e964bb9c2180633ed6b41d32759dfecd35fb25223a552"
+    },
+    {
+      "bytes": 221516,
+      "path": "json/employee_role_history.json",
+      "rows": 1004,
+      "sha256": "cff85522a27e0645686b67a500b28666ddf4c459cf2ed352655e46960f16394e"
+    },
+    {
+      "bytes": 7627,
+      "path": "json/manager.json",
+      "rows": 37,
+      "sha256": "91290c2b29b5718ba9892fdab40b9912826695a8e52aa83f2b3b8a386a22c589"
+    },
+    {
+      "bytes": 51940,
+      "path": "json/offboarding_case.json",
+      "rows": 108,
+      "sha256": "e7bf2107579f0b94ce63463a9cd1ce027e9353842d4213305411ed0ed5c14ebd"
+    },
+    {
+      "bytes": 421140,
+      "path": "json/onboarding_case.json",
+      "rows": 880,
+      "sha256": "c39b7e5919304c742de61cf057861bec388f9b0d4e6c0fedd4466c0c90d134b6"
+    },
+    {
+      "bytes": 9923,
+      "path": "json/role.json",
+      "rows": 50,
+      "sha256": "194d9f298afb4b5479906e76dce4da5510dd26945f3b1d6159cf5d1e92f41692"
+    },
+    {
+      "bytes": 14295,
+      "path": "json/role_access_template.json",
+      "rows": 138,
+      "sha256": "f91cb5c33a1a5624cb9686761f550ad61457e111a7c949ac49a14de1ec832912"
+    },
+    {
+      "bytes": 3515823,
+      "path": "json/task.json",
+      "rows": 7999,
+      "sha256": "b35a7917ee6c01512133319e6a484b25ec18b8a7f647f2600dc58b542115080d"
+    },
+    {
+      "bytes": 1409890,
+      "path": "json/task_dependency.json",
+      "rows": 8756,
+      "sha256": "ea24c71a344d67efb7fac9f87d8ab8fba8ec6b7cda57fef6319a2fa109b34464"
+    },
+    {
+      "bytes": 20287,
+      "path": "reports/evaluation_report.json",
+      "sha256": "e79002ab583dd1251b9076187e8ac6d27b61d4b2d6fbc4b31c3ebf79590fc4c8"
+    },
+    {
+      "bytes": 6821,
+      "path": "reports/evaluation_report.md",
+      "sha256": "af4c14064ecf990af267ee3d6facce7b13b81c56ef70020af87ee2faa7374a3d"
+    },
+    {
+      "bytes": 9112009,
+      "path": "sql/seed.sql",
+      "sha256": "51649463dcbab8a738f3fe4a512c358e147a8412afb61fa4b6ecbbaec5fde561"
+    }
+  ],
+  "generator": {
+    "code_version": "1.0.0",
+    "command": "python scripts/generate.py --scale full --seed 20261022",
+    "dependencies": "standard library only",
+    "python_requires": ">=3.10"
+  },
+  "manifest_version": 1,
+  "row_counts": {
+    "access_grant": 2456,
+    "access_role": 15,
+    "asset": 1200,
+    "asset_assignment": 1080,
+    "audit_event": 30836,
+    "department": 12,
+    "employee": 1000,
+    "employee_role_history": 1004,
+    "manager": 37,
+    "offboarding_case": 108,
+    "onboarding_case": 880,
+    "role": 50,
+    "role_access_template": 138,
+    "task": 7999,
+    "task_dependency": 8756
+  },
+  "sources": [
+    {
+      "description": "All records are generated from hand-authored reference data in src/orchestrator/reference.py (generic names, roles, systems and asset models combined at random). Emails use the reserved domain example.com (RFC 2606). No real person, organisation or confidential data is used.",
+      "external_data": false,
+      "fields_discarded": [],
+      "license": "Generated data may be used and redistributed freely together with this repository.",
+      "name": "orchestrator synthetic generator",
+      "transformations": "none (no external source)",
+      "type": "synthetic"
+    }
+  ]
+}

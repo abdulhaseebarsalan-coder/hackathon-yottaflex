@@ -1,0 +1,13 @@
+department_id,department_name,function_group,cost_center
+DEPT-001,Executive Office,BUSINESS,CC-1000
+DEPT-002,Engineering,BUSINESS,CC-1100
+DEPT-003,Product Management,BUSINESS,CC-1200
+DEPT-004,Data & Analytics,BUSINESS,CC-1300
+DEPT-005,Sales,BUSINESS,CC-1400
+DEPT-006,Customer Success,BUSINESS,CC-1500
+DEPT-007,Marketing,BUSINESS,CC-1600
+DEPT-008,Finance,BUSINESS,CC-1700
+DEPT-009,Legal & Compliance,BUSINESS,CC-1800
+DEPT-010,People (HR),HR,CC-2000
+DEPT-011,IT & Security,IT,CC-2100
+DEPT-012,Facilities & Workplace,FACILITIES,CC-2200

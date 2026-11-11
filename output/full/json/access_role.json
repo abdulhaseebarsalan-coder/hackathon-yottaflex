@@ -1,0 +1,17 @@
+{"table": "access_role", "primary_key": "access_role_id", "row_count": 15, "columns": ["access_role_id", "access_role_name", "target_system", "privilege_level", "approver_type", "contractor_allowed"], "rows": [
+{"access_role_id": "AR-001", "access_role_name": "Corporate SSO & Email", "target_system": "Identity Provider", "privilege_level": "STANDARD", "approver_type": "MANAGER", "contractor_allowed": true},
+{"access_role_id": "AR-002", "access_role_name": "Remote Access VPN", "target_system": "Network", "privilege_level": "STANDARD", "approver_type": "MANAGER", "contractor_allowed": true},
+{"access_role_id": "AR-003", "access_role_name": "Source Code Repository - Write", "target_system": "Code Hosting", "privilege_level": "ELEVATED", "approver_type": "MANAGER", "contractor_allowed": true},
+{"access_role_id": "AR-004", "access_role_name": "Cloud Console - Developer", "target_system": "Cloud Platform", "privilege_level": "ELEVATED", "approver_type": "MANAGER_AND_SYSTEM_OWNER", "contractor_allowed": true},
+{"access_role_id": "AR-005", "access_role_name": "Production Database - Admin", "target_system": "Production Database", "privilege_level": "PRIVILEGED", "approver_type": "MANAGER_AND_SYSTEM_OWNER", "contractor_allowed": false},
+{"access_role_id": "AR-006", "access_role_name": "CRM - Sales User", "target_system": "CRM", "privilege_level": "STANDARD", "approver_type": "MANAGER", "contractor_allowed": true},
+{"access_role_id": "AR-007", "access_role_name": "Support Desk - Agent", "target_system": "Ticketing", "privilege_level": "STANDARD", "approver_type": "MANAGER", "contractor_allowed": true},
+{"access_role_id": "AR-008", "access_role_name": "ERP - Finance Ledger", "target_system": "ERP", "privilege_level": "ELEVATED", "approver_type": "MANAGER_AND_SYSTEM_OWNER", "contractor_allowed": false},
+{"access_role_id": "AR-009", "access_role_name": "HRIS & Payroll - Admin", "target_system": "HRIS", "privilege_level": "PRIVILEGED", "approver_type": "MANAGER_AND_SYSTEM_OWNER", "contractor_allowed": false},
+{"access_role_id": "AR-010", "access_role_name": "Marketing Automation - Editor", "target_system": "Marketing Platform", "privilege_level": "STANDARD", "approver_type": "MANAGER", "contractor_allowed": true},
+{"access_role_id": "AR-011", "access_role_name": "BI Dashboards - Viewer", "target_system": "BI Platform", "privilege_level": "STANDARD", "approver_type": "MANAGER", "contractor_allowed": true},
+{"access_role_id": "AR-012", "access_role_name": "Data Warehouse - Analyst", "target_system": "Data Warehouse", "privilege_level": "ELEVATED", "approver_type": "MANAGER_AND_SYSTEM_OWNER", "contractor_allowed": true},
+{"access_role_id": "AR-013", "access_role_name": "Identity Provider - Admin", "target_system": "Identity Provider", "privilege_level": "PRIVILEGED", "approver_type": "MANAGER_AND_SYSTEM_OWNER", "contractor_allowed": false},
+{"access_role_id": "AR-014", "access_role_name": "Building Access Control - Operator", "target_system": "Physical Security", "privilege_level": "ELEVATED", "approver_type": "MANAGER_AND_SYSTEM_OWNER", "contractor_allowed": false},
+{"access_role_id": "AR-015", "access_role_name": "Contract Management - User", "target_system": "Contract Lifecycle", "privilege_level": "STANDARD", "approver_type": "MANAGER", "contractor_allowed": true}
+]}

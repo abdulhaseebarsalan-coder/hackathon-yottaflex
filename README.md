@@ -4,18 +4,26 @@ A deterministic, rule-driven generator of synthetic HR / IT / Facilities workflo
 pre-boarding, access provisioning, equipment delivery and exit tasks. Every status, total and
 date is derived from source records, and every state change is kept as an append-only audit event.
 
-> **Status:** Steps 1–5 complete (schema, master data, onboarding/offboarding transactions,
-> labelled anomaly injection + ground truth, evaluation metrics & reporting). JSON/SQL seed
-> exports, the checksum manifest and the MySQL load are added in the next step.
+> **Status:** Steps 1–6 complete: schema, master data, onboarding/offboarding transactions,
+> labelled anomaly injection + ground truth, evaluation metrics & reporting, and CSV / JSON / SQL
+> exports with a SHA-256 manifest, a standalone reproducibility check and a MySQL loader.
+> **Three-tier delivery:** database tier ✅ (MySQL) · backend tier ✅ (FastAPI REST API) ·
+> frontend tier ⏳ **in development (pending)**. See "Three-tier architecture".
 
 ## Quick start
 
 ```bash
-pip install -r requirements.txt          # only pytest; the generator uses the standard library
-python scripts/generate.py --scale starter   # 100 employees  -> output/starter/{csv,ground_truth,reports}
-python scripts/generate.py --scale full      # 1,000 employees -> output/full/{csv,ground_truth,reports}
-python scripts/evaluate.py --scale full      # re-evaluate an existing output folder (optional)
-python -m pytest -q                          # tests
+pip install -r requirements.txt               # pytest + backend (fastapi, uvicorn, PyMySQL); generator is stdlib-only
+python scripts/generate.py --scale starter    # 100 employees   -> output/starter/
+python scripts/generate.py --scale full       # 1,000 employees -> output/full/
+python scripts/reproduce.py                   # regenerate both scales twice, compare all SHA-256s
+python -m pytest -q                           # 144 tests (+1 opt-in live MySQL test)
+
+# optional
+python scripts/evaluate.py --scale full       # re-evaluate an existing output folder
+python scripts/reproduce.py --verify-only     # only re-hash output/<scale> against manifest.json
+python scripts/export_schema.py               # rebuild sql/schema.sql + docs/ from the schema
+python scripts/load_mysql.py --scale starter --yes   # load into MySQL (see "MySQL")
 ```
 
 Options: `--seed <int>` (default **20261022** from `config/settings.json`), `--employees <n>`
@@ -25,15 +33,88 @@ Starter and full datasets come from the same generator and the same seed; only t
 parameter differs. `generate.py` evaluates the files it has just written and exits non-zero if
 the evaluation verdict is FAIL (see "Evaluation metrics and reporting").
 
-Output layout:
+Output layout (one self-describing folder per scale):
 
 ```
-output/<scale>/csv/<table>.csv              input tables (what a consumer / model sees)
-output/<scale>/ground_truth/anomalies.csv   labels for injected anomalies (kept separate)
-output/<scale>/ground_truth/anomalies.json  same, plus seed / scale / requested vs injected counts
+output/<scale>/csv/<table>.csv                 input tables (what a consumer / model sees)
+output/<scale>/json/<table>.json               same tables as typed JSON
+output/<scale>/sql/seed.sql                    MySQL INSERTs in dependency order (one transaction)
+output/<scale>/ground_truth/anomalies.csv      labels for injected anomalies (kept separate)
+output/<scale>/ground_truth/anomalies.json     same, plus seed / scale / requested vs injected counts
 output/<scale>/reports/evaluation_report.md    human-readable evaluation (verdict, metrics, KPIs)
 output/<scale>/reports/evaluation_report.json  the same, machine-readable
+output/<scale>/manifest.json                   SHA-256, bytes and rows of every file above + provenance
 ```
+
+## Three-tier architecture
+
+```
+┌─────────────────────────────┐   HTTP / JSON    ┌──────────────────────────────┐   SQL (PyMySQL)   ┌──────────────────────────┐
+│ FRONTEND (presentation)     │ ───────────────► │ BACKEND (application / API)  │ ────────────────► │ DATABASE (data)          │
+│ frontend/  - PENDING        │                  │ backend/  FastAPI + Uvicorn  │                   │ MySQL `hackathon_db`     │
+│ dashboard in the browser    │ ◄─────────────── │ read-only REST API, :8000    │ ◄──────────────── │ 15 tables, 36 FKs,       │
+│ (calls the API only)        │                  │ Swagger UI at /docs          │                   │ CHECK constraints        │
+└─────────────────────────────┘                  └──────────────────────────────┘                   └──────────────────────────┘
+                                                                                                                ▲
+                                          data pipeline (offline): scripts/generate.py -> output/<scale>/ ──────┘
+                                          scripts/load_mysql.py (schema.sql -> seed.sql -> deferred FKs)
+```
+
+| Tier | Folder | Technology | Status |
+|---|---|---|---|
+| Database | `sql/`, loaded by `scripts/load_mysql.py` | MySQL 8.0.16+ (tested on 26.10) | ✅ done |
+| Backend | `backend/` | Python, FastAPI, Uvicorn, PyMySQL | ✅ done |
+| Frontend | `frontend/` | HTML / CSS / JavaScript dashboard | ⏳ pending |
+
+Each tier talks only to its neighbour: the frontend never reads files or MySQL directly, and the
+backend is the only component that queries the database. The data pipeline (Steps 1–6) builds and
+loads the database; it is not part of the request path.
+
+### Backend: setup and run
+
+```bash
+pip install -r requirements.txt               # pytest, fastapi, uvicorn, PyMySQL
+copy .env.example .env                        # Windows (cp on macOS/Linux); set MYSQL_USER / MYSQL_PASSWORD
+python scripts/load_mysql.py --scale full --yes     # database tier must be loaded first
+python -m uvicorn backend.main:app --port 8000      # start the API (run from the repository root)
+```
+
+Interactive API documentation (Swagger UI): **http://127.0.0.1:8000/docs**, where you can try every
+endpoint. The OpenAPI spec is at http://127.0.0.1:8000/openapi.json.
+
+The backend reads the same `MYSQL_*` settings as the loader (environment variables or `.env`).
+Ground-truth labels are read from `output/full/ground_truth/` (override with `DATASET_DIR`); they are
+never stored in MySQL. CORS allows the frontend origin `http://127.0.0.1:5500` / `http://localhost:5500`
+(override with `API_CORS_ORIGINS`).
+
+### API endpoints (all `GET`, read-only)
+
+| Endpoint | Description |
+|---|---|
+| `/api/health` | API and database status: database name, MySQL version, number of tables |
+| `/api/summary` | Row counts per table, breakdowns (employees by status / type, onboarding by status, exits by type, grants, assets, tasks, active headcount by department) and KPIs (task on-time rate, open overdue tasks, delayed starts, approved overrides, urgent terminations) |
+| `/api/anomalies` | Runs the 5 business-rule checks (`sql/queries/anomaly_checks.sql`) **live in MySQL** and joins them with the ground truth: per type found vs expected, and per anomaly its severity, rule, expected decision and `confirmed_in_db`. Filters: `?issue_type=`, `?severity=` |
+| `/api/employees` | Employee search. `?q=` (ID, name or email fragment), `?status=` (PRE_BOARDING / ACTIVE / TERMINATED / WITHDRAWN), `?limit=` (1-200), `?offset=` |
+| `/api/employees/{employee_id}` | Full lifecycle of one employee (`EMP-000001` format): profile, role history, onboarding and offboarding case, tasks with dependencies, access grants, asset assignments and audit trail |
+
+Live results on the full dataset: `/api/anomalies` returns 10 found / 10 expected for each of the 5
+types (50 / 50 confirmed, 0 unexpected).
+
+Security and robustness:
+- Read-only: only `SELECT`s are executed, and only `GET` routes exist.
+- User input is passed only as query parameters, never concatenated into SQL. LIKE wildcards in search are escaped.
+- Inputs are validated before they reach the database: `employee_id` pattern, enum values, limits. Invalid input gets HTTP 422.
+- Database errors return HTTP 503 with a generic message: no stack trace, no credentials.
+
+Backend tests (`tests/test_backend.py`, 18 tests) start the real Uvicorn server on a free port with
+a fake database, so no MySQL is needed. They cover every endpoint, filters, parameter binding,
+validation, 404 / 503 handling, CORS and the read-only guarantee. If FastAPI / Uvicorn are not
+installed, these tests are skipped.
+
+### Frontend
+
+⏳ **Pending.** Planned: a static dashboard in `frontend/` (KPI cards, anomaly table with severities,
+employee search and lifecycle view) that reads data only from the backend API.
 
 ## Project layout
 
@@ -60,10 +141,30 @@ src/orchestrator/
   metrics/evaluation.py         evaluation report (JSON + Markdown)
   datasets.py                   typed loader for published CSV / ground truth; content fingerprints
   export/csv_writer.py          CSV export (stable formatting for checksums)
+  export/json_writer.py         JSON export
+  export/sql_writer.py          MySQL DDL (from schema), deferred FKs, seed INSERTs, statement splitter
   export/ground_truth_writer.py ground-truth CSV / JSON export
-scripts/generate.py             generator command (also writes the evaluation report)
+  export/manifest.py            SHA-256 manifest build + verification
+  export/docs_writer.py         data dictionary + ER diagram (from schema)
+  publish.py                    writes one complete output folder (used by generate + reproduce)
+  db/mysql_loader.py            env-based settings, mysql CLI / PyMySQL backends, load + verify
+scripts/generate.py             generate + export + evaluate + manifest
 scripts/evaluate.py             evaluate an existing output folder
-tests/                          pytest suite
+scripts/reproduce.py            standalone reproducibility / integrity check
+scripts/export_schema.py        rebuild sql/schema.sql, sql/deferred_constraints.sql, docs/*.md
+scripts/load_mysql.py           load a dataset into MySQL and verify it
+sql/schema.sql                  generated DDL (15 tables, PK / FK / UNIQUE / CHECK / indexes)
+sql/deferred_constraints.sql    the 2 forward-reference FKs, added after the seed
+sql/queries/anomaly_checks.sql  the 5 business rules as SQL (run by the loader)
+docs/data_dictionary.md         every field: type, required, allowed values, units, uniqueness, rule
+docs/er_diagram.md              Mermaid ER diagram + cardinality table
+.env.example                    MySQL settings template (copy to .env; .env is git-ignored)
+backend/                        BACKEND TIER (FastAPI)
+  main.py                       app, 5 GET endpoints, validation, CORS, error handling
+  repository.py                 parameterized SQL queries behind the endpoints
+  db.py                         PyMySQL connection (settings from env / .env), read-only
+frontend/                       FRONTEND TIER (pending)
+tests/                          pytest suite (incl. tests/test_backend.py)
 ```
 
 ## Data model (15 tables)
@@ -192,6 +293,77 @@ unseen real-world data. Tests prove the metrics react to errors: dropping a type
 alarm lowers precision / recall / F1; unlabelled corruption shows up as *unexplained* violations;
 deleting the ground-truth folder turns every anomaly into a false positive and the verdict into FAIL.
 
+## Exports, manifest and reproducibility (Step 6)
+
+**Formats.** Every table is exported three ways from the same in-memory rows:
+
+| Format | Details |
+|---|---|
+| CSV | schema column order, `true`/`false`, ISO dates, `YYYY-MM-DD HH:MM:SS`, empty = null, LF |
+| JSON | `{"table", "primary_key", "row_count", "columns", "rows": [...]}`, one record per line; numbers, booleans and `null` are native, and dates are ISO strings |
+| SQL | `sql/schema.sql` + `output/<scale>/sql/seed.sql` + `sql/deferred_constraints.sql` |
+
+**SQL schema.** It is generated from `schema.py`, so it cannot drift (a test compares the
+committed file with the generator). It has 15 InnoDB tables, a primary key on each, 34 inline FKs
+in load order, 2 deferred FKs added after loading (so MySQL validates every row), UNIQUE keys,
+`CHECK` constraints for every enum, structural checks (e.g. a task belongs to exactly one case),
+query indexes, and column comments. Business-rule ordering is deliberately *not* a constraint,
+because the labelled anomalies must load so they can be detected.
+
+**Manifest.** `output/<scale>/manifest.json` lists, for every published file, its relative path,
+size, SHA-256 and row count. It also records the generator command, seed, code version, source
+provenance (synthetic, no external data) and the evaluation verdict. It has no timestamps or
+absolute paths, so identical inputs give an identical manifest. `verify_manifest()` reports
+missing, changed and unlisted files.
+
+**Reproducibility.** `python scripts/reproduce.py` verifies `output/<scale>` against its manifest,
+regenerates each scale twice from scratch in git-ignored `output/_repro_*` folders, and requires
+every file hash and row count to be identical across the runs **and** with the published manifest.
+Current result: starter and full PASS (35 files each, all identical).
+
+## MySQL
+
+1. Create the database once (e.g. in MySQL Workbench: `CREATE DATABASE hackathon_db;`).
+2. `copy .env.example .env` (Windows) or `cp .env.example .env`, then set `MYSQL_USER` /
+   `MYSQL_PASSWORD`. **Never commit `.env`** (it is in `.gitignore`). Shell environment variables
+   override `.env`.
+3. `python scripts/load_mysql.py --scale starter --dry-run` checks the files and settings without connecting.
+4. `python scripts/load_mysql.py --scale starter --yes` (or `--scale full --yes`).
+
+The loader:
+- re-verifies the manifest checksums and refuses to load tampered files;
+- creates the database if missing, then runs `schema.sql` -> `seed.sql` -> `deferred_constraints.sql`;
+- checks loaded row counts against the manifest and that all 36 FKs exist;
+- runs the 5 SQL anomaly checks (`sql/queries/anomaly_checks.sql`) and compares them with the ground truth.
+
+It uses PyMySQL if installed, otherwise the `mysql` command-line client (on PATH, under
+`C:/Program Files/MySQL/*/bin`, or `MYSQL_CLIENT`). With the CLI the password goes into a temporary
+owner-only option file that is deleted immediately; it is never on the command line and never
+printed. **`--yes` drops and recreates the 15 project tables** in `MYSQL_DATABASE`; other tables are
+untouched and system databases are refused.
+
+Verified on MySQL 26.10 (isolated throwaway server): starter and full load with all FKs and
+CHECK constraints, row counts match, and the 5 SQL checks return exactly the ground-truth counts
+(full: 10 each). The clean baseline returns 0 for every check. Invalid enums, orphan FKs (including
+the deferred `employee.manager_id`) and a task attached to two cases are rejected by MySQL. To run the
+opt-in live test against your own disposable database:
+`ORCH_MYSQL_LIVE_TEST=1 MYSQL_TEST_DATABASE=<scratch_db> python -m pytest tests/test_mysql_loader.py -k live`
+(with `MYSQL_USER` / `MYSQL_PASSWORD` set).
+
+## Limitations
+
+- **Volumes:** access grants (2,456) exceed the suggested 1,500 because mandatory role access is
+  kept (see "Volumes"); starter scale has 14 anomalies, not 15 (shortfall reported, not fabricated).
+- **Evaluation is self-consistency:** detector scores are measured against labels produced by this
+  project, not real-world data.
+- **SQL dialect:** the DDL targets MySQL 8.0.16+ (CHECK constraints, recursive CTEs). The seed uses
+  standard quote escaping and doubled backslashes, so it assumes the default `sql_mode` (no
+  `NO_BACKSLASH_ESCAPES`). The generated data contains no backslashes.
+- **Reproducibility scope:** byte-identical output is guaranteed for the same code version, seed,
+  scale and employee count. The manifest records the code version, not the Python version.
+- **Output size:** the full folder is about 34 MB (JSON ~18 MB, SQL ~9 MB, CSV ~7 MB), within GitHub limits.
+- **Live MySQL tests are opt-in.** Ordinary unit tests use a fake backend and mocked `subprocess`.
+
 ## Assumptions
 
 1. **Snapshot model.** The dataset is a point-in-time snapshot at **2026-10-22**. No recorded fact
@@ -229,6 +401,10 @@ deleting the ground-truth folder turns every anomaly into a false positive and t
     are not ready on day one; this is a genuine property of the generated process, reported as-is.
 16. Recovery and revocation KPIs only include exits whose SLA window has closed by the snapshot
     (revocation: after `revocation_due_date`; recovery: 10 days after the last working date).
+17. The MySQL target database is dedicated to this project. The loader replaces its 15 project
+    tables on every run, so a load is idempotent.
+18. Ground truth is not loaded into MySQL; it stays in `output/<scale>/ground_truth/` and is used only
+    to compare with the SQL checks.
 
 ## Provenance and lawful use
 

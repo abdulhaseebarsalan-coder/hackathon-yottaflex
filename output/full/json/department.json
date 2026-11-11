@@ -1,0 +1,14 @@
+{"table": "department", "primary_key": "department_id", "row_count": 12, "columns": ["department_id", "department_name", "function_group", "cost_center"], "rows": [
+{"department_id": "DEPT-001", "department_name": "Executive Office", "function_group": "BUSINESS", "cost_center": "CC-1000"},
+{"department_id": "DEPT-002", "department_name": "Engineering", "function_group": "BUSINESS", "cost_center": "CC-1100"},
+{"department_id": "DEPT-003", "department_name": "Product Management", "function_group": "BUSINESS", "cost_center": "CC-1200"},
+{"department_id": "DEPT-004", "department_name": "Data & Analytics", "function_group": "BUSINESS", "cost_center": "CC-1300"},
+{"department_id": "DEPT-005", "department_name": "Sales", "function_group": "BUSINESS", "cost_center": "CC-1400"},
+{"department_id": "DEPT-006", "department_name": "Customer Success", "function_group": "BUSINESS", "cost_center": "CC-1500"},
+{"department_id": "DEPT-007", "department_name": "Marketing", "function_group": "BUSINESS", "cost_center": "CC-1600"},
+{"department_id": "DEPT-008", "department_name": "Finance", "function_group": "BUSINESS", "cost_center": "CC-1700"},
+{"department_id": "DEPT-009", "department_name": "Legal & Compliance", "function_group": "BUSINESS", "cost_center": "CC-1800"},
+{"department_id": "DEPT-010", "department_name": "People (HR)", "function_group": "HR", "cost_center": "CC-2000"},
+{"department_id": "DEPT-011", "department_name": "IT & Security", "function_group": "IT", "cost_center": "CC-2100"},
+{"department_id": "DEPT-012", "department_name": "Facilities & Workplace", "function_group": "FACILITIES", "cost_center": "CC-2200"}
+]}

@@ -1,0 +1,51 @@
+role_id,role_title,department_id,job_level,is_people_manager,laptop_class,contractor_eligible
+ROLE-001,Chief Executive Officer,DEPT-001,L7,true,STANDARD,false
+ROLE-002,Executive Assistant,DEPT-001,L2,false,STANDARD,false
+ROLE-003,Director of Engineering,DEPT-002,L6,true,ENGINEERING,false
+ROLE-004,Engineering Manager,DEPT-002,L5,true,ENGINEERING,false
+ROLE-005,Software Engineer,DEPT-002,L3,false,ENGINEERING,true
+ROLE-006,Senior Software Engineer,DEPT-002,L4,false,ENGINEERING,true
+ROLE-007,Site Reliability Engineer,DEPT-002,L4,false,ENGINEERING,true
+ROLE-008,QA Engineer,DEPT-002,L3,false,ENGINEERING,true
+ROLE-009,Software Engineering Intern,DEPT-002,L1,false,ENGINEERING,false
+ROLE-010,Head of Product,DEPT-003,L6,true,STANDARD,false
+ROLE-011,Group Product Manager,DEPT-003,L5,true,STANDARD,false
+ROLE-012,Product Manager,DEPT-003,L4,false,STANDARD,true
+ROLE-013,Product Designer,DEPT-003,L3,false,ENGINEERING,true
+ROLE-014,Head of Data,DEPT-004,L6,true,ENGINEERING,false
+ROLE-015,Analytics Manager,DEPT-004,L5,true,ENGINEERING,false
+ROLE-016,Data Analyst,DEPT-004,L3,false,STANDARD,true
+ROLE-017,Data Engineer,DEPT-004,L4,false,ENGINEERING,true
+ROLE-018,Data Science Intern,DEPT-004,L1,false,STANDARD,false
+ROLE-019,VP Sales,DEPT-005,L6,true,STANDARD,false
+ROLE-020,Sales Manager,DEPT-005,L5,true,STANDARD,false
+ROLE-021,Account Executive,DEPT-005,L3,false,STANDARD,false
+ROLE-022,Sales Development Rep,DEPT-005,L2,false,STANDARD,true
+ROLE-023,Head of Customer Success,DEPT-006,L6,true,STANDARD,false
+ROLE-024,Support Team Lead,DEPT-006,L4,true,STANDARD,false
+ROLE-025,Customer Success Manager,DEPT-006,L3,false,STANDARD,true
+ROLE-026,Support Specialist,DEPT-006,L2,false,STANDARD,true
+ROLE-027,Head of Marketing,DEPT-007,L6,true,STANDARD,false
+ROLE-028,Marketing Manager,DEPT-007,L5,true,STANDARD,false
+ROLE-029,Content Marketer,DEPT-007,L3,false,STANDARD,true
+ROLE-030,Growth Marketer,DEPT-007,L3,false,STANDARD,true
+ROLE-031,Marketing Intern,DEPT-007,L1,false,STANDARD,false
+ROLE-032,Chief Financial Officer,DEPT-008,L6,true,STANDARD,false
+ROLE-033,Finance Manager,DEPT-008,L5,true,STANDARD,false
+ROLE-034,Financial Analyst,DEPT-008,L3,false,STANDARD,true
+ROLE-035,Accountant,DEPT-008,L3,false,STANDARD,true
+ROLE-036,General Counsel,DEPT-009,L6,true,STANDARD,false
+ROLE-037,Legal Counsel,DEPT-009,L4,false,STANDARD,true
+ROLE-038,Compliance Analyst,DEPT-009,L3,false,STANDARD,true
+ROLE-039,HR Director,DEPT-010,L6,true,STANDARD,false
+ROLE-040,HR Business Partner,DEPT-010,L4,false,STANDARD,false
+ROLE-041,Recruiter,DEPT-010,L3,false,STANDARD,true
+ROLE-042,People Operations Specialist,DEPT-010,L2,false,STANDARD,true
+ROLE-043,IT Director,DEPT-011,L6,true,ENGINEERING,false
+ROLE-044,IT Operations Partner,DEPT-011,L3,false,STANDARD,false
+ROLE-045,Systems Administrator,DEPT-011,L4,false,ENGINEERING,false
+ROLE-046,Security Engineer,DEPT-011,L4,false,ENGINEERING,true
+ROLE-047,Service Desk Analyst,DEPT-011,L2,false,STANDARD,true
+ROLE-048,Facilities Manager,DEPT-012,L5,true,STANDARD,false
+ROLE-049,Workplace Coordinator,DEPT-012,L2,false,NONE,false
+ROLE-050,Facilities Technician,DEPT-012,L2,false,NONE,true

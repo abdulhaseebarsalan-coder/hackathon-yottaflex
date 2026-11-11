@@ -1,0 +1,341 @@
+{
+  "seed": 20261022,
+  "scale": "starter",
+  "as_of_date": "2026-10-22",
+  "requested_per_type": 3,
+  "injected_per_type": {
+    "ACCESS_BEFORE_START_OR_APPROVAL": 3,
+    "DUPLICATE_ASSET_ASSIGNMENT": 3,
+    "TERMINATED_EMPLOYEE_RETAINS_GRANT": 3,
+    "TASK_DEPENDENCY_CYCLE": 3,
+    "RECOVERED_ASSET_REMAINS_ASSIGNED": 2
+  },
+  "shortfall": {
+    "RECOVERED_ASSET_REMAINS_ASSIGNED": 1
+  },
+  "shortfall_reason": "fewer eligible baseline records than requested at this scale; no record is fabricated to fill the quota",
+  "anomaly_count": 14,
+  "anomalies": [
+    {
+      "anomaly_id": "ANOM-0001",
+      "issue_type": "ACCESS_BEFORE_START_OR_APPROVAL",
+      "sub_type": "BEFORE_START",
+      "severity": "HIGH",
+      "rule_id": "RULE-ACCESS-01",
+      "entity_type": "access_grant",
+      "entity_id": "GRANT-EMP-000022-002",
+      "detection_key": "GRANT-EMP-000022-002",
+      "employee_id": "EMP-000022",
+      "case_id": "ONB-2026-000003",
+      "related_ids": [
+        "EVT-00000496"
+      ],
+      "field_changes": [
+        "access_grant.provisioned_date: 2026-02-09 -> 2026-02-05",
+        "audit_event[EVT-00000496].event_timestamp moved to 2026-02-05"
+      ],
+      "expected_decision": "SUSPEND_ACCESS_UNTIL_START_AND_RAISE_EXCEPTION",
+      "description": "Provisioned 2026-02-05 but employee start is 2026-02-09 and approval is 2026-01-06; no ACCESS_OVERRIDE_APPROVED event exists."
+    },
+    {
+      "anomaly_id": "ANOM-0002",
+      "issue_type": "ACCESS_BEFORE_START_OR_APPROVAL",
+      "sub_type": "BEFORE_APPROVAL",
+      "severity": "HIGH",
+      "rule_id": "RULE-ACCESS-01",
+      "entity_type": "access_grant",
+      "entity_id": "GRANT-EMP-000079-002",
+      "detection_key": "GRANT-EMP-000079-002",
+      "employee_id": "EMP-000079",
+      "case_id": "ONB-2026-000060",
+      "related_ids": [
+        "EVT-00002342"
+      ],
+      "field_changes": [
+        "access_grant.provisioned_date: 2026-08-11 -> 2026-07-27",
+        "audit_event[EVT-00002342].event_timestamp moved to 2026-07-27"
+      ],
+      "expected_decision": "REVOKE_ACCESS_PENDING_APPROVAL_AND_INVESTIGATE",
+      "description": "Provisioned 2026-07-27 but employee start is 2026-08-10 and approval is 2026-07-30; no ACCESS_OVERRIDE_APPROVED event exists."
+    },
+    {
+      "anomaly_id": "ANOM-0003",
+      "issue_type": "ACCESS_BEFORE_START_OR_APPROVAL",
+      "sub_type": "BEFORE_START",
+      "severity": "HIGH",
+      "rule_id": "RULE-ACCESS-01",
+      "entity_type": "access_grant",
+      "entity_id": "GRANT-EMP-000021-004",
+      "detection_key": "GRANT-EMP-000021-004",
+      "employee_id": "EMP-000021",
+      "case_id": "ONB-2026-000002",
+      "related_ids": [
+        "EVT-00000493"
+      ],
+      "field_changes": [
+        "access_grant.provisioned_date: 2026-02-09 -> 2026-01-27",
+        "audit_event[EVT-00000493].event_timestamp moved to 2026-01-27"
+      ],
+      "expected_decision": "SUSPEND_ACCESS_UNTIL_START_AND_RAISE_EXCEPTION",
+      "description": "Provisioned 2026-01-27 but employee start is 2026-02-02 and approval is 2026-01-11; no ACCESS_OVERRIDE_APPROVED event exists."
+    },
+    {
+      "anomaly_id": "ANOM-0004",
+      "issue_type": "DUPLICATE_ASSET_ASSIGNMENT",
+      "sub_type": "OVERLAPPING_OPEN_ASSIGNMENTS",
+      "severity": "MEDIUM",
+      "rule_id": "RULE-ASSET-01",
+      "entity_type": "asset",
+      "entity_id": "AST-000048",
+      "detection_key": "AST-000048",
+      "employee_id": "EMP-000031",
+      "case_id": null,
+      "related_ids": [
+        "ASG-000048",
+        "ASG-000124",
+        "EMP-000034",
+        "EVT-00002933",
+        "EVT-00002934"
+      ],
+      "field_changes": [
+        "asset_assignment ASG-000124 added for EMP-000031 while ASG-000048 (EMP-000034) is open",
+        "audit_event EVT-00002933, EVT-00002934 added"
+      ],
+      "expected_decision": "RECALL_ASSET_FROM_SECOND_HOLDER_AND_CLOSE_DUPLICATE_ASSIGNMENT",
+      "description": "AST-000048 issued to EMP-000031 on 2026-09-29 while still held by EMP-000034 since 2026-03-06."
+    },
+    {
+      "anomaly_id": "ANOM-0005",
+      "issue_type": "DUPLICATE_ASSET_ASSIGNMENT",
+      "sub_type": "OVERLAPPING_OPEN_ASSIGNMENTS",
+      "severity": "MEDIUM",
+      "rule_id": "RULE-ASSET-01",
+      "entity_type": "asset",
+      "entity_id": "AST-000112",
+      "detection_key": "AST-000112",
+      "employee_id": "EMP-000063",
+      "case_id": null,
+      "related_ids": [
+        "ASG-000114",
+        "ASG-000125",
+        "EMP-000084",
+        "EVT-00002935",
+        "EVT-00002936"
+      ],
+      "field_changes": [
+        "asset_assignment ASG-000125 added for EMP-000063 while ASG-000114 (EMP-000084) is open",
+        "audit_event EVT-00002935, EVT-00002936 added"
+      ],
+      "expected_decision": "RECALL_ASSET_FROM_SECOND_HOLDER_AND_CLOSE_DUPLICATE_ASSIGNMENT",
+      "description": "AST-000112 issued to EMP-000063 on 2026-10-05 while still held by EMP-000084 since 2026-09-18."
+    },
+    {
+      "anomaly_id": "ANOM-0006",
+      "issue_type": "DUPLICATE_ASSET_ASSIGNMENT",
+      "sub_type": "OVERLAPPING_OPEN_ASSIGNMENTS",
+      "severity": "MEDIUM",
+      "rule_id": "RULE-ASSET-01",
+      "entity_type": "asset",
+      "entity_id": "AST-000079",
+      "detection_key": "AST-000079",
+      "employee_id": "EMP-000033",
+      "case_id": null,
+      "related_ids": [
+        "ASG-000079",
+        "ASG-000126",
+        "EMP-000061",
+        "EVT-00002937",
+        "EVT-00002938"
+      ],
+      "field_changes": [
+        "asset_assignment ASG-000126 added for EMP-000033 while ASG-000079 (EMP-000061) is open",
+        "audit_event EVT-00002937, EVT-00002938 added"
+      ],
+      "expected_decision": "RECALL_ASSET_FROM_SECOND_HOLDER_AND_CLOSE_DUPLICATE_ASSIGNMENT",
+      "description": "AST-000079 issued to EMP-000033 on 2026-09-28 while still held by EMP-000061 since 2026-06-12."
+    },
+    {
+      "anomaly_id": "ANOM-0007",
+      "issue_type": "TERMINATED_EMPLOYEE_RETAINS_GRANT",
+      "sub_type": "CONTRACT_END",
+      "severity": "CRITICAL",
+      "rule_id": "RULE-ACCESS-02",
+      "entity_type": "access_grant",
+      "entity_id": "GRANT-EMP-000029-004",
+      "detection_key": "GRANT-EMP-000029-004",
+      "employee_id": "EMP-000029",
+      "case_id": "OFF-2026-000001",
+      "related_ids": [
+        "OFF-2026-000001",
+        "EVT-00002429"
+      ],
+      "field_changes": [
+        "access_grant.revoked_date: 2026-08-29 -> null",
+        "access_grant.revocation_reason: CONTRACT_END -> null",
+        "access_grant.offboarding_case_id: OFF-2026-000001 -> null",
+        "audit_event EVT-00002429 (GRANT_REVOKED) removed"
+      ],
+      "expected_decision": "REVOKE_ACCESS_IMMEDIATELY_AND_REVIEW_ACCESS_LOGS",
+      "description": "Employee terminated (last working date 2026-08-28, revocation due 2026-08-29) but AR-002 is still active."
+    },
+    {
+      "anomaly_id": "ANOM-0008",
+      "issue_type": "TERMINATED_EMPLOYEE_RETAINS_GRANT",
+      "sub_type": "CONTRACT_END",
+      "severity": "CRITICAL",
+      "rule_id": "RULE-ACCESS-02",
+      "entity_type": "access_grant",
+      "entity_id": "GRANT-EMP-000057-002",
+      "detection_key": "GRANT-EMP-000057-002",
+      "employee_id": "EMP-000057",
+      "case_id": "OFF-2026-000002",
+      "related_ids": [
+        "OFF-2026-000002",
+        "EVT-00002469"
+      ],
+      "field_changes": [
+        "access_grant.revoked_date: 2026-09-06 -> null",
+        "access_grant.revocation_reason: CONTRACT_END -> null",
+        "access_grant.offboarding_case_id: OFF-2026-000002 -> null",
+        "audit_event EVT-00002469 (GRANT_REVOKED) removed"
+      ],
+      "expected_decision": "REVOKE_ACCESS_IMMEDIATELY_AND_REVIEW_ACCESS_LOGS",
+      "description": "Employee terminated (last working date 2026-09-06, revocation due 2026-09-07) but AR-003 is still active."
+    },
+    {
+      "anomaly_id": "ANOM-0009",
+      "issue_type": "TERMINATED_EMPLOYEE_RETAINS_GRANT",
+      "sub_type": "INVOLUNTARY",
+      "severity": "CRITICAL",
+      "rule_id": "RULE-ACCESS-02",
+      "entity_type": "access_grant",
+      "entity_id": "GRANT-EMP-000041-001",
+      "detection_key": "GRANT-EMP-000041-001",
+      "employee_id": "EMP-000041",
+      "case_id": "OFF-2026-000004",
+      "related_ids": [
+        "OFF-2026-000004",
+        "EVT-00002659"
+      ],
+      "field_changes": [
+        "access_grant.revoked_date: 2026-09-28 -> null",
+        "access_grant.revocation_reason: TERMINATION -> null",
+        "access_grant.offboarding_case_id: OFF-2026-000004 -> null",
+        "audit_event EVT-00002659 (GRANT_REVOKED) removed"
+      ],
+      "expected_decision": "REVOKE_ACCESS_IMMEDIATELY_AND_REVIEW_ACCESS_LOGS",
+      "description": "Employee terminated (last working date 2026-09-27, revocation due 2026-09-28) but AR-001 is still active."
+    },
+    {
+      "anomaly_id": "ANOM-0010",
+      "issue_type": "TASK_DEPENDENCY_CYCLE",
+      "sub_type": "BACK_EDGE",
+      "severity": "MEDIUM",
+      "rule_id": "RULE-TASK-01",
+      "entity_type": "task_dependency",
+      "entity_id": "DEPN-000792",
+      "detection_key": "ONB-2026-000074",
+      "employee_id": "EMP-000093",
+      "case_id": "ONB-2026-000074",
+      "related_ids": [
+        "TASK-ONB-2026-000074-003",
+        "TASK-ONB-2026-000074-004",
+        "TASK-ONB-2026-000074-005"
+      ],
+      "field_changes": [
+        "task_dependency DEPN-000792 added: TASK-ONB-2026-000074-003 depends on TASK-ONB-2026-000074-005 (TASK-ONB-2026-000074-005 already depends on TASK-ONB-2026-000074-003)"
+      ],
+      "expected_decision": "REMOVE_INVALID_DEPENDENCY_DEPN-000792",
+      "description": "Dependency DEPN-000792 makes TASK-ONB-2026-000074-003 wait for its own downstream task TASK-ONB-2026-000074-005; the case task graph is no longer acyclic."
+    },
+    {
+      "anomaly_id": "ANOM-0011",
+      "issue_type": "TASK_DEPENDENCY_CYCLE",
+      "sub_type": "BACK_EDGE",
+      "severity": "MEDIUM",
+      "rule_id": "RULE-TASK-01",
+      "entity_type": "task_dependency",
+      "entity_id": "DEPN-000793",
+      "detection_key": "ONB-2026-000062",
+      "employee_id": "EMP-000081",
+      "case_id": "ONB-2026-000062",
+      "related_ids": [
+        "TASK-ONB-2026-000062-006",
+        "TASK-ONB-2026-000062-007"
+      ],
+      "field_changes": [
+        "task_dependency DEPN-000793 added: TASK-ONB-2026-000062-006 depends on TASK-ONB-2026-000062-007 (TASK-ONB-2026-000062-007 already depends on TASK-ONB-2026-000062-006)"
+      ],
+      "expected_decision": "REMOVE_INVALID_DEPENDENCY_DEPN-000793",
+      "description": "Dependency DEPN-000793 makes TASK-ONB-2026-000062-006 wait for its own downstream task TASK-ONB-2026-000062-007; the case task graph is no longer acyclic."
+    },
+    {
+      "anomaly_id": "ANOM-0012",
+      "issue_type": "TASK_DEPENDENCY_CYCLE",
+      "sub_type": "BACK_EDGE",
+      "severity": "MEDIUM",
+      "rule_id": "RULE-TASK-01",
+      "entity_type": "task_dependency",
+      "entity_id": "DEPN-000794",
+      "detection_key": "ONB-2026-000050",
+      "employee_id": "EMP-000069",
+      "case_id": "ONB-2026-000050",
+      "related_ids": [
+        "TASK-ONB-2026-000050-003",
+        "TASK-ONB-2026-000050-004",
+        "TASK-ONB-2026-000050-005",
+        "TASK-ONB-2026-000050-007",
+        "TASK-ONB-2026-000050-008"
+      ],
+      "field_changes": [
+        "task_dependency DEPN-000794 added: TASK-ONB-2026-000050-003 depends on TASK-ONB-2026-000050-008 (TASK-ONB-2026-000050-008 already depends on TASK-ONB-2026-000050-003)"
+      ],
+      "expected_decision": "REMOVE_INVALID_DEPENDENCY_DEPN-000794",
+      "description": "Dependency DEPN-000794 makes TASK-ONB-2026-000050-003 wait for its own downstream task TASK-ONB-2026-000050-008; the case task graph is no longer acyclic."
+    },
+    {
+      "anomaly_id": "ANOM-0013",
+      "issue_type": "RECOVERED_ASSET_REMAINS_ASSIGNED",
+      "sub_type": "ASSIGNMENT_NOT_CLOSED",
+      "severity": "LOW",
+      "rule_id": "RULE-ASSET-02",
+      "entity_type": "asset_assignment",
+      "entity_id": "ASG-000056",
+      "detection_key": "ASG-000056",
+      "employee_id": "EMP-000041",
+      "case_id": "OFF-2026-000004",
+      "related_ids": [
+        "AST-000056",
+        "OFF-2026-000004",
+        "EVT-00002682"
+      ],
+      "field_changes": [
+        "asset_assignment.returned_date: 2026-09-30 -> null (ASSET_RETURNED EVT-00002682 kept)"
+      ],
+      "expected_decision": "CLOSE_ASSIGNMENT_USING_RECOVERY_EVENT_DATE",
+      "description": "AST-000056 was recovered on 2026-09-30 (EVT-00002682) and is in stock, but assignment ASG-000056 to EMP-000041 is still open."
+    },
+    {
+      "anomaly_id": "ANOM-0014",
+      "issue_type": "RECOVERED_ASSET_REMAINS_ASSIGNED",
+      "sub_type": "ASSIGNMENT_NOT_CLOSED",
+      "severity": "LOW",
+      "rule_id": "RULE-ASSET-02",
+      "entity_type": "asset_assignment",
+      "entity_id": "ASG-000086",
+      "detection_key": "ASG-000086",
+      "employee_id": "EMP-000066",
+      "case_id": "OFF-2026-000003",
+      "related_ids": [
+        "AST-000086",
+        "OFF-2026-000003",
+        "EVT-00002930"
+      ],
+      "field_changes": [
+        "asset_assignment.returned_date: 2026-10-22 -> null (ASSET_RETURNED EVT-00002930 kept)"
+      ],
+      "expected_decision": "CLOSE_ASSIGNMENT_USING_RECOVERY_EVENT_DATE",
+      "description": "AST-000086 was recovered on 2026-10-22 (EVT-00002930) and is in stock, but assignment ASG-000086 to EMP-000066 is still open."
+    }
+  ]
+}
