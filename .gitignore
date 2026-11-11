@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+
+# Local secrets / DB credentials
+.env
+config/db.local.json
+
+# Editor / OS
+.vscode/
+.idea/
+.claude/
+Thumbs.db
+.DS_Store
+
+# Scratch reproducibility runs (committed datasets live in output/starter and output/full)
+output/_repro_*/

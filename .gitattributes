@@ -1,0 +1,3 @@
+# Keep generated data byte-identical across OSes so published SHA-256 checksums stay valid.
+output/** -text
+* text=auto eol=lf

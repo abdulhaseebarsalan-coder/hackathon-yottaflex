@@ -1,0 +1,58 @@
+{
+  "seed": 20261022,
+  "as_of_date": "2026-10-22",
+  "case_id_year": 2026,
+
+  "scales": {
+    "starter": {
+      "employees": 100,
+      "assets": 120,
+      "anomalies_per_type": 3
+    },
+    "full": {
+      "employees": 1000,
+      "assets": 1200,
+      "anomalies_per_type": 10
+    }
+  },
+
+  "volume_targets_full": {
+    "employees": 1000,
+    "tasks": 8000,
+    "access_grants": 1500,
+    "assets": 1200
+  },
+
+  "workforce": {
+    "existing_staff_ratio": 0.12,
+    "existing_hire_window": ["2017-01-01", "2025-12-15"],
+    "new_hire_start_window": ["2026-01-12", "2026-12-14"],
+    "offer_lead_days": [14, 45],
+    "employment_type_weights": {"FULL_TIME": 0.80, "CONTRACTOR": 0.15, "INTERN": 0.05},
+    "work_location_weights": {"ONSITE": 0.35, "HYBRID": 0.45, "REMOTE": 0.20},
+    "contract_length_days": [90, 365],
+    "intern_length_days": [60, 120]
+  },
+
+  "scenarios": {
+    "delayed_start_rate": 0.10,
+    "delayed_start_days": [7, 35],
+    "offer_withdrawn_rate": 0.03,
+    "role_change_rate": 0.06,
+    "exit_rate": 0.12,
+    "exit_type_weights": {"VOLUNTARY": 0.65, "INVOLUNTARY": 0.20, "URGENT_TERMINATION": 0.15},
+    "notice_days": [14, 30],
+    "grant_rejection_rate": 0.03,
+    "approved_early_access_override_rate": 0.02,
+    "asset_lost_rate": 0.03,
+    "acknowledgement_lag_days": [0, 4],
+    "never_acknowledged_rate": 0.02,
+    "optional_access_request_rate": 0.55
+  },
+
+  "sla": {
+    "standard_revocation_days_after_lwd": 1,
+    "urgent_revocation_days_after_notice": 0,
+    "asset_recovery_days_after_lwd": 10
+  }
+}

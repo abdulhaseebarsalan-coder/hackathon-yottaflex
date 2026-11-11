@@ -1,0 +1,2 @@
+# Generator, validator and exporters use only the Python standard library (3.10+).
+pytest>=8.0
