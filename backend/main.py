@@ -17,7 +17,7 @@ from typing import Annotated, Literal
 
 from fastapi import Depends, FastAPI, HTTPException, Path as PathParam, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 
 from backend import repository as repo
 from backend.db import ROOT, Database, MySQLDatabase
@@ -58,6 +58,12 @@ def dataset_dir() -> Path:
 async def database_unavailable(_request, exc: Exception):  # never leak credentials / stack traces
     return JSONResponse(status_code=503, content={"detail": f"Backend error: {type(exc).__name__}. "
                                                             "Is MySQL running and is .env configured?"})
+
+
+@app.get("/", include_in_schema=False)
+def root():
+    """Opening the server's base URL in a browser goes straight to the interactive API docs."""
+    return RedirectResponse(url="/docs")
 
 
 @app.get("/api/health", tags=["system"], summary="API and database status")

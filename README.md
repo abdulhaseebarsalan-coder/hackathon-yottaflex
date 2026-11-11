@@ -1,16 +1,107 @@
-# Onboarding & Offboarding Orchestrator: Synthetic Data Generator
+# Workforce Onboarding & Offboarding Orchestrator: Data Pipeline + 3-Tier App
 
-A deterministic, rule-driven generator of synthetic HR / IT / Facilities workflow data:
-pre-boarding, access provisioning, equipment delivery and exit tasks. Every status, total and
-date is derived from source records, and every state change is kept as an append-only audit event.
+Orchestrates pre-boarding, access provisioning, equipment delivery and exit tasks across HR, IT and
+Facilities. The project has two parts:
 
-> **Status:** Steps 1–6 complete: schema, master data, onboarding/offboarding transactions,
-> labelled anomaly injection + ground truth, evaluation metrics & reporting, and CSV / JSON / SQL
-> exports with a SHA-256 manifest, a standalone reproducibility check and a MySQL loader.
-> **Three-tier delivery:** database tier ✅ (MySQL) · backend tier ✅ (FastAPI REST API) ·
-> frontend tier ⏳ **in development (pending)**. See "Three-tier architecture".
+1. **Data pipeline:** a deterministic, rule-driven generator of synthetic workflow data (1,000
+   employees, ~8,000 tasks, access grants, assets, exits) with labelled anomalies, a separate
+   ground truth, validation, evaluation metrics, CSV / JSON / SQL exports, a SHA-256 manifest and a
+   reproducibility check. Every status, total and date is derived from source records, and every
+   state change is kept as an append-only audit event.
+2. **Three-tier application:** a **MySQL** database, a **FastAPI** REST API and a **React**
+   dashboard (Workforce Intelligence Dashboard) that shows KPIs, live anomaly detection and each
+   employee's full lifecycle.
 
-## Quick start
+> **Status: complete.** Database tier ✅ (MySQL) · backend tier ✅ (FastAPI) · frontend tier ✅
+> (React + Vite) · data pipeline ✅. The generated dataset is **already committed** in `output/`, so
+> you can start the app without generating anything. See [Requirements coverage](#requirements-coverage)
+> for where each requirement of the brief is implemented.
+
+**Contents:**
+[Run the application](#run-the-full-application-all-three-tiers) ·
+[Requirements coverage](#requirements-coverage) ·
+[Data pipeline & tests](#data-pipeline--tests-optional) ·
+[Architecture](#three-tier-architecture) ·
+[API endpoints](#api-endpoints-all-get-read-only) ·
+[Dashboard](#frontend-workforce-intelligence-dashboard) ·
+[Project layout](#project-layout) ·
+[Data model](#data-model-15-tables) ·
+[Business rules](#business-rules-implemented) ·
+[Anomalies & ground truth](#anomaly-injection-and-ground-truth-step-4) ·
+[Evaluation](#evaluation-metrics-and-reporting-step-5) ·
+[Exports & reproducibility](#exports-manifest-and-reproducibility-step-6) ·
+[MySQL](#mysql) ·
+[Limitations](#limitations) ·
+[Assumptions](#assumptions)
+
+## Run the full application (all three tiers)
+
+**Prerequisites:** Python 3.10+, MySQL 8.0.16+ (running locally, with a user that can create a
+database and tables), Node.js 18+ with npm.
+
+You do **not** need to generate data first: the full dataset is already in `output/full/`. The loader
+creates the `hackathon_db` database if it does not exist.
+
+```bash
+# 1. Python dependencies (generator + backend)
+pip install -r requirements.txt
+
+# 2. DATABASE tier: credentials, then load the published dataset into MySQL
+copy .env.example .env                               # Windows (cp on macOS/Linux); set MYSQL_USER / MYSQL_PASSWORD
+python scripts/load_mysql.py --scale full --yes      # expect "MySQL load: PASS"  (use --scale full for the dashboard)
+
+# 3. BACKEND tier (terminal 1, from the repository root)
+python -m uvicorn backend.main:app --port 8000
+
+# 4. FRONTEND tier (terminal 2)
+cd frontend
+npm install                                          # first time only
+npm run dev
+```
+
+| Open this | What it is |
+|---|---|
+| **http://127.0.0.1:5500** | **Frontend:** Workforce Intelligence Dashboard (React) |
+| **http://127.0.0.1:8000/docs** | **Backend:** interactive API documentation (Swagger UI). The base URL http://127.0.0.1:8000 redirects here. |
+| http://127.0.0.1:8000/api/health | Backend health check (JSON) |
+| MySQL Workbench → `hackathon_db` | **Database:** 15 tables |
+
+Both servers keep running in their terminals; stop them with **Ctrl+C**. The dashboard header shows
+green **API Connected** and **Database (MySQL)** chips when all three tiers are up.
+
+> **Which dataset?** The dashboard and API read the ground-truth labels from `output/full/`, so load
+> `--scale full` into MySQL. To use the 100-employee starter dataset instead, load `--scale starter`
+> and start the backend with `DATASET_DIR=output/starter` set in the environment.
+
+## Requirements coverage
+
+How each part of the brief maps to this repository:
+
+| Brief requirement | Where it is implemented |
+|---|---|
+| Master data first (Employee, Role, Department, Manager, OnboardingCase), then dependent records with valid parent IDs | `generator/master.py` → `generator/cases.py`, `access.py`, `assets.py`; 36 foreign keys checked by `validation/structural.py` and enforced in MySQL |
+| Business logic: org & role templates, hires & start dates, tasks with prerequisites, access only after approval, equipment & acknowledgement, exits with revocation / recovery, grants reconciled to employment | `generator/` modules ([Business rules](#business-rules-implemented)); reconciliation checked in `validation/consistency.py` and the evaluation report |
+| State changes as explicit events; history never overwritten | `audit_event` (30k+ events), `employee_role_history`, `START_DATE_CHANGED` events |
+| Labels from documented rules, not random | `generator/anomalies.py` + `validation/rules.py` (RULE-ACCESS-01/02, RULE-ASSET-01/02, RULE-TASK-01) |
+| Entities, PK / FK, cardinality, bridge tables, lifecycle states, effective dates | `src/orchestrator/schema.py`, [`docs/data_dictionary.md`](docs/data_dictionary.md), [`docs/er_diagram.md`](docs/er_diagram.md) |
+| ID conventions (EMP-000001, ONB-2026-000001, TASK-…, GRANT-…, AST-…, OFF-2026-…) | `src/orchestrator/ids.py`; ID patterns validated on every table |
+| Step 1: data dictionary (type, required, allowed values, units, uniqueness, rule) | [`docs/data_dictionary.md`](docs/data_dictionary.md) (generated from the schema) |
+| Step 4: 1,000 employees / 8,000 tasks / 1,500 grants / 1,200 assets, delayed starts, role changes, contractors, urgent terminations, fixed seed, parameterised scale | `config/settings.json` (seed 20261022), `--scale starter / full`, [Volumes](#volumes) |
+| Step 5: 5 labelled edge cases | [Anomalies & ground truth](#anomaly-injection-and-ground-truth-step-4): 10 of each at full scale |
+| Step 6: derived values from source records | `generator/derive.py`; every derived field re-derived and compared in the evaluation report |
+| Step 7: separate ground truth, no leakage | `output/<scale>/ground_truth/anomalies.{csv,json}`; tested that input tables carry no labels |
+| Step 8: validation (PK, FK, enums, date ordering, arithmetic reconciliation, lifecycle transitions, duplicates) | `validation/structural.py`, `validation/consistency.py` → `output/<scale>/reports/evaluation_report.md` |
+| Step 9: CSV / JSON / SQL + README, data dictionary, generator command, fixed seed, source manifest, validation summary | `output/<scale>/{csv,json,sql}`, `output/<scale>/manifest.json`, `output/<scale>/reports/`, this README |
+| Step 10: regenerate twice, compare row counts / checksums | `python scripts/reproduce.py` (starter and full: PASS) |
+| Acceptance: valid task graph, access aligned with employment, assets reconcile, exceptions audited | Consistency checks + 144 tests; approved overrides always link an `ACCESS_OVERRIDE_APPROVED` audit event |
+| Evaluation metrics | Detector precision / recall / F1, workflow KPIs, scenario coverage: [Evaluation](#evaluation-metrics-and-reporting-step-5) |
+| Three-tier application (frontend / backend / database shown separately) | `frontend/` (React), `backend/` (FastAPI), MySQL via `sql/` + `scripts/load_mysql.py`: [Architecture](#three-tier-architecture) |
+| Lawful provenance | Fully synthetic, no external data: [Provenance](#provenance-and-lawful-use) and `manifest.json` → `sources` |
+
+## Data pipeline & tests (optional)
+
+Not needed to run the app: the published datasets are already in `output/`. Use these commands to
+regenerate, re-evaluate or test.
 
 ```bash
 pip install -r requirements.txt               # pytest + backend (fastapi, uvicorn, PyMySQL); generator is stdlib-only
@@ -51,8 +142,8 @@ output/<scale>/manifest.json                   SHA-256, bytes and rows of every 
 ```
 ┌─────────────────────────────┐   HTTP / JSON    ┌──────────────────────────────┐   SQL (PyMySQL)   ┌──────────────────────────┐
 │ FRONTEND (presentation)     │ ───────────────► │ BACKEND (application / API)  │ ────────────────► │ DATABASE (data)          │
-│ frontend/  - PENDING        │                  │ backend/  FastAPI + Uvicorn  │                   │ MySQL `hackathon_db`     │
-│ dashboard in the browser    │ ◄─────────────── │ read-only REST API, :8000    │ ◄──────────────── │ 15 tables, 36 FKs,       │
+│ frontend/  React + Vite     │                  │ backend/  FastAPI + Uvicorn  │                   │ MySQL `hackathon_db`     │
+│ dashboard, :5500            │ ◄─────────────── │ read-only REST API, :8000    │ ◄──────────────── │ 15 tables, 36 FKs,       │
 │ (calls the API only)        │                  │ Swagger UI at /docs          │                   │ CHECK constraints        │
 └─────────────────────────────┘                  └──────────────────────────────┘                   └──────────────────────────┘
                                                                                                                 ▲
@@ -64,7 +155,7 @@ output/<scale>/manifest.json                   SHA-256, bytes and rows of every 
 |---|---|---|---|
 | Database | `sql/`, loaded by `scripts/load_mysql.py` | MySQL 8.0.16+ (tested on 26.10) | ✅ done |
 | Backend | `backend/` | Python, FastAPI, Uvicorn, PyMySQL | ✅ done |
-| Frontend | `frontend/` | HTML / CSS / JavaScript dashboard | ⏳ pending |
+| Frontend | `frontend/` | React 18, Vite 6, JavaScript, plain CSS | ✅ done |
 
 Each tier talks only to its neighbour: the frontend never reads files or MySQL directly, and the
 backend is the only component that queries the database. The data pipeline (Steps 1–6) builds and
@@ -111,10 +202,79 @@ a fake database, so no MySQL is needed. They cover every endpoint, filters, para
 validation, 404 / 503 handling, CORS and the read-only guarantee. If FastAPI / Uvicorn are not
 installed, these tests are skipped.
 
-### Frontend
+### Frontend: Workforce Intelligence Dashboard
 
-⏳ **Pending.** Planned: a static dashboard in `frontend/` (KPI cards, anomaly table with severities,
-employee search and lifecycle view) that reads data only from the backend API.
+A React 18 + Vite single-page dashboard in `frontend/`. It gets **all** of its data from the backend
+API (`src/api.js` is the only module that makes network calls). It never connects to MySQL and never
+sees credentials. It has no hard-coded or sample numbers.
+
+**Setup and run** (requires Node.js 18+; the backend must be running on port 8000):
+
+```bash
+cd frontend
+npm install          # first time only (installs react, react-dom, vite, @vitejs/plugin-react)
+npm run dev          # dev server on http://127.0.0.1:5500
+npm run build        # optional: production build into frontend/dist/ (git-ignored)
+```
+
+Open **http://127.0.0.1:5500**. Port 5500 is fixed in `vite.config.js` because it is the origin the
+backend allows through CORS. To point the dashboard at another API, set `VITE_API_BASE`
+(default `http://127.0.0.1:8000/api`).
+
+**Pages (left sidebar)**
+
+| Page | What it shows | API endpoint(s) |
+|---|---|---|
+| Dashboard | KPI cards (employees, tasks, on-time rate, anomalies), Employees by Status donut, Exits by Type, Access Grants by Status, anomaly table, employee search, quick stats | `/api/summary`, `/api/anomalies`, `/api/employees` |
+| Employees | Status and employment-type charts; searchable, filterable, paginated employee list | `/api/summary`, `/api/employees` |
+| Tasks | Task KPIs, tasks by status, dependency count, task-graph anomalies | `/api/summary`, `/api/anomalies` |
+| Access & Grants | Grant KPIs, grants by status, entitlement catalogue, access anomalies | `/api/summary`, `/api/anomalies` |
+| Assets | Asset KPIs, assets by status, assignments, asset anomalies | `/api/summary`, `/api/anomalies` |
+| Anomalies | Ground-truth comparison per rule (found in DB vs expected), all 50 anomalies with type / severity filters | `/api/anomalies` |
+| Reports | Rows per MySQL table, headcount by department, onboarding / exit / task breakdowns | `/api/summary` |
+| System Health | API and database status, MySQL version, and an "Run checks" button that calls every endpoint and measures its response time | `/api/health` + all endpoints |
+| Employee details (right panel) | Profile, role, department, manager, onboarding / offboarding case, and tabs for Tasks, Access, Assets, History and Audit trail. Opens when you click an employee in search or an employee ID in any anomaly table. | `/api/employees/{id}` |
+
+The header has live **API** and **Database** status chips and a **Refresh** button that re-fetches
+everything. Every panel has loading, empty and error states. If the backend is down, the header turns
+red ("API Disconnected") and panels show a retry message instead of data.
+
+**Where the numbers come from**
+- KPIs, charts, employee lists and details, and the "Found in DB" anomaly counts are queried **live
+  from MySQL** by the backend.
+- Anomaly *labels* (severity, description, expected decision, ground-truth counts) come from
+  `output/full/ground_truth/anomalies.json`. Ground truth is deliberately kept separate from the
+  database; the backend only joins it with the live SQL results.
+- To verify, compare the dashboard with MySQL Workbench, e.g. `SELECT COUNT(*) FROM employee;` or
+  `SELECT employment_status, COUNT(*) FROM employee GROUP BY employment_status;`.
+
+**Frontend files**
+
+```
+frontend/
+  package.json, vite.config.js, index.html, .gitignore   (node_modules/ and dist/ are git-ignored)
+  src/main.jsx                 entry point
+  src/App.jsx                  app shell: navigation, refresh, selected employee
+  src/api.js                   API client (the only network code) + loading hook
+  src/styles.css               theme: navy sidebar, light canvas, indigo accent, responsive rules
+  src/components/Layout.jsx    sidebar and header (status chips, refresh)
+  src/components/Views.jsx     the eight pages
+  src/components/Anomalies.jsx anomaly table, filters, ground-truth comparison
+  src/components/Employees.jsx employee search and employee details panel
+  src/components/Charts.jsx    donut / column / bar charts (SVG + CSS, no chart library)
+  src/components/common.jsx    cards, status pills, loading / empty / error states
+  src/components/Icons.jsx     inline SVG icons
+```
+
+**Troubleshooting**
+
+| Symptom | Fix |
+|---|---|
+| `Port 5500 is already in use` | Another dev server is running; open http://127.0.0.1:5500 or stop the other process |
+| Header shows **API Disconnected** | Start the backend: `python -m uvicorn backend.main:app --port 8000` |
+| API connected but **Database Unavailable** / 503 errors | Check MySQL is running and `.env` has the right credentials; run `python scripts/load_mysql.py --scale full --yes` |
+| Empty tables / missing data | Load the dataset into MySQL (step 2 above), then click **Refresh** |
+| CORS error in the browser console | Open the dashboard at `http://127.0.0.1:5500` or `http://localhost:5500` (other origins are not allowed) |
 
 ## Project layout
 
@@ -163,7 +323,9 @@ backend/                        BACKEND TIER (FastAPI)
   main.py                       app, 5 GET endpoints, validation, CORS, error handling
   repository.py                 parameterized SQL queries behind the endpoints
   db.py                         PyMySQL connection (settings from env / .env), read-only
-frontend/                       FRONTEND TIER (pending)
+frontend/                       FRONTEND TIER (React + Vite dashboard; see "Frontend")
+  src/api.js                    API client: the only module that talks to the backend
+  src/App.jsx, src/components/  pages, charts, anomaly tables, employee search / details
 tests/                          pytest suite (incl. tests/test_backend.py)
 ```
 
@@ -202,7 +364,8 @@ still enforced without disabling FK checks.
    day) and recover equipment; some assets are reported lost.
 7. **Reconciliation.** Active grants belong only to active employees (or to an approved early-access
    exception), match the employee's current role template, and terminated employees hold none
-   once the revocation SLA has passed. *(Currently enforced by tests; reported by the validator next.)*
+   once the revocation SLA has passed. Enforced by tests and reported in
+   `output/<scale>/reports/evaluation_report.md` (validation and KPI sections).
 8. **Derived values** are computed from source records only (`generator/derive.py`).
 
 ## Anomaly injection and ground truth (Step 4)
@@ -363,6 +526,12 @@ opt-in live test against your own disposable database:
   scale and employee count. The manifest records the code version, not the Python version.
 - **Output size:** the full folder is about 34 MB (JSON ~18 MB, SQL ~9 MB, CSV ~7 MB), within GitHub limits.
 - **Live MySQL tests are opt-in.** Ordinary unit tests use a fake backend and mocked `subprocess`.
+- **Frontend scope:** the API has no cross-employee task list or asset inventory endpoint, so the Tasks
+  and Assets pages show totals, status breakdowns and anomalies; per-employee tasks and assets are in
+  the employee details panel. There are no trend indicators (e.g. "+12% vs last month") because the
+  dataset is a single snapshot with no history. There is no login: the avatar is a local demo session.
+- **Frontend tests:** the dashboard was verified by building it and rendering every page with real API
+  responses. There is no automated browser (end-to-end) test suite.
 
 ## Assumptions
 
