@@ -112,6 +112,8 @@ ROLES = {
 # --------------------------------------------------------------------------------------
 # Access catalog: key -> (name, target_system, privilege_level, approver_type, contractor_allowed)
 # Generic system names on purpose (no vendor branding).
+# Corporate SSO & Email is a mandatory, approval-gated AccessGrant for every role: approved in
+# ONB_ACCESS_APPROVAL, provisioned by ONB_IDENTITY_SSO, revoked by OFF_REVOKE_ACCESS.
 # --------------------------------------------------------------------------------------
 ACCESS_ROLES = {
     "SSO": ("Corporate SSO & Email", "Identity Provider", "STANDARD", "MANAGER", True),
@@ -131,8 +133,7 @@ ACCESS_ROLES = {
     "CLM": ("Contract Management - User", "Contract Lifecycle", "STANDARD", "MANAGER", True),
 }
 
-# Role templates. Department default: list of (access_key, is_mandatory).
-# Every role gets SSO as mandatory; role-specific overrides are added on top.
+# Role templates. Every role gets SSO (mandatory); department defaults and role overrides add on top.
 DEPARTMENT_ACCESS = {
     "Executive Office": [("BI", False)],
     "Engineering": [("CODE", True), ("CLOUD", False), ("VPN", False)],

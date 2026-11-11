@@ -33,18 +33,18 @@ TASK_STATUSES = ["BLOCKED", "READY", "IN_PROGRESS", "COMPLETED", "CANCELLED"]
 DEPENDENCY_TYPES = ["FINISH_TO_START"]
 REQUEST_REASONS = ["NEW_HIRE", "ROLE_CHANGE", "EXISTING_BASELINE"]
 APPROVAL_STATUSES = ["PENDING", "APPROVED", "REJECTED"]
-GRANT_STATUSES = ["REQUESTED", "APPROVED", "REJECTED", "ACTIVE", "REVOKED"]
+GRANT_STATUSES = ["REQUESTED", "APPROVED", "REJECTED", "ACTIVE", "REVOKED", "CANCELLED"]
 REVOCATION_REASONS = ["TERMINATION", "ROLE_CHANGE", "CONTRACT_END"]
 ASSET_TYPES = ["LAPTOP", "MONITOR", "PHONE", "SECURITY_KEY"]
 ASSET_STATUSES = ["IN_STOCK", "ASSIGNED", "LOST", "RETIRED"]
 ASSIGNMENT_STATUSES = ["ASSIGNED", "DELIVERED", "ACKNOWLEDGED", "RETURNED", "LOST"]
 EXIT_TYPES = ["VOLUNTARY", "INVOLUNTARY", "CONTRACT_END", "URGENT_TERMINATION"]
-ACTOR_ROLES = ["EMPLOYEE", "MANAGER", "HR_PARTNER", "IT_PARTNER", "SYSTEM_ADMIN", "SYSTEM"]
+ACTOR_ROLES = ["EMPLOYEE", "MANAGER", "HR_PARTNER", "IT_OPS_PARTNER", "SYSTEM_ADMIN", "SYSTEM"]
 
 ONBOARDING_TASK_CODES = [
     "ONB_CONTRACT", "ONB_BACKGROUND_CHECK", "ONB_HRIS_RECORD", "ONB_ACCESS_APPROVAL",
     "ONB_IDENTITY_SSO", "ONB_APP_ACCESS", "ONB_WORKSPACE_BADGE", "ONB_EQUIPMENT_SHIP",
-    "ONB_EQUIPMENT_ACK", "ONB_PRIVILEGED_TRAINING", "ONB_DAY_ONE_ORIENTATION",
+    "ONB_EQUIPMENT_ACK", "ONB_PRIVILEGED_TRAINING",
 ]
 OFFBOARDING_TASK_CODES = [
     "OFF_CONFIRM_EXIT", "OFF_REVOKE_ACCESS", "OFF_RECOVER_EQUIPMENT", "OFF_DEACTIVATE_BADGE",
@@ -60,11 +60,11 @@ AUDIT_EVENT_TYPES = [
     "EMPLOYEE_HIRED", "EMPLOYEE_STARTED", "EMPLOYEE_TERMINATED", "OFFER_WITHDRAWN",
     "ROLE_CHANGED", "START_DATE_CHANGED",
     "CASE_CREATED", "CASE_COMPLETED", "CASE_CANCELLED",
-    "TASK_CREATED", "TASK_COMPLETED", "TASK_CANCELLED",
+    "TASK_STARTED", "TASK_COMPLETED", "TASK_CANCELLED",  # tasks are instantiated with CASE_CREATED
     "GRANT_REQUESTED", "GRANT_APPROVED", "GRANT_REJECTED", "GRANT_PROVISIONED", "GRANT_REVOKED",
-    "ACCESS_OVERRIDE_APPROVED",
+    "GRANT_CANCELLED", "ACCESS_OVERRIDE_APPROVED",
     "ASSET_PURCHASED", "ASSET_ASSIGNED", "ASSET_DELIVERED", "ASSET_ACKNOWLEDGED",
-    "ASSET_RETURNED", "ASSET_LOST",
+    "ASSET_RETURNED", "ASSET_LOST", "ASSET_RETIRED",
 ]
 
 
@@ -179,11 +179,12 @@ TABLES: list[Table] = [
             F("role_id", "str", "Current role.", fk="role.role_id", derived=True,
               rule="= role of latest employee_role_history row"),
             F("manager_id", "str", "Current line manager (null only for the top executive).",
-              required=False, fk="manager.manager_id"),
+              required=False, fk="manager.manager_id", derived=True,
+              rule="= manager of latest employee_role_history row (offered manager if withdrawn)"),
             F("work_location", "str", "Work pattern.", enum=WORK_LOCATIONS),
             F("hire_date", "date", "Offer accepted / record created.", rule="hire_date <= start_date"),
             F("start_date", "date", "Actual (or currently planned) first day.", derived=True,
-              rule="= onboarding_case.actual_start_date or planned_start_date"),
+              rule="= onboarding_case actual/planned start; existing staff = first role-history effective_from"),
             F("contract_end_date", "date", "Fixed-term end. Required for CONTRACTOR/INTERN.", required=False,
               rule="> start_date; required iff employment_type in (CONTRACTOR, INTERN)"),
             F("termination_date", "date", "Last working date if exited.", required=False, derived=True,
@@ -217,6 +218,8 @@ TABLES: list[Table] = [
             F("employee_id", "str", "Employee.", fk="employee.employee_id"),
             F("role_id", "str", "Role held.", fk="role.role_id"),
             F("department_id", "str", "Department during the period.", fk="department.department_id"),
+            F("manager_id", "str", "Line manager during the period (null only for the top executive).",
+              required=False, fk="manager.manager_id"),
             F("effective_from", "date", "Period start."),
             F("effective_to", "date", "Period end (null = current).", required=False,
               rule=">= effective_from; periods for one employee never overlap"),
@@ -240,6 +243,8 @@ TABLES: list[Table] = [
               rule="= last START_DATE_CHANGED event, else original_start_date"),
             F("actual_start_date", "date", "First day worked (null if not started).", required=False,
               rule="<= as_of_date"),
+            F("cancelled_date", "date", "Offer withdrawn (case cancelled).", required=False,
+              rule="< original_start_date; actual_start_date is null"),
             F("start_delay_days", "int", "Planned minus original start.", units="days", derived=True,
               rule=">= 0"),
             F("total_tasks", "int", "Number of tasks on the case.", units="count", derived=True),
@@ -297,8 +302,9 @@ TABLES: list[Table] = [
             F("assignee_employee_id", "str", "Person doing the task.", fk="employee.employee_id"),
             F("created_date", "date", "Task instantiated."),
             F("due_date", "date", "SLA due date.", rule=">= created_date"),
-            F("completed_date", "date", "Completion date.", required=False,
+            F("started_date", "date", "Work started (all prerequisites complete).", required=False,
               rule=">= created_date; >= completed_date of every prerequisite"),
+            F("completed_date", "date", "Completion date.", required=False, rule=">= started_date"),
             F("task_status", "str", "Status as of as_of_date.", enum=TASK_STATUSES, derived=True),
             F("is_overdue", "bool", "Completed after due (or open past due).", derived=True),
         ],
@@ -342,7 +348,7 @@ TABLES: list[Table] = [
             F("revocation_reason", "str", "Why revoked.", required=False, enum=REVOCATION_REASONS),
             F("grant_status", "str", "Lifecycle status as of as_of_date.", enum=GRANT_STATUSES, derived=True),
         ],
-        lifecycle="REQUESTED -> APPROVED -> ACTIVE -> REVOKED; REQUESTED -> REJECTED",
+        lifecycle="REQUESTED -> APPROVED -> ACTIVE -> REVOKED; REQUESTED -> REJECTED; REQUESTED|APPROVED -> CANCELLED (offer withdrawn)",
     ),
     Table(
         "asset", "Asset", "master",
@@ -358,7 +364,7 @@ TABLES: list[Table] = [
             F("asset_status", "str", "Inventory status as of as_of_date.", enum=ASSET_STATUSES, derived=True,
               rule="= latest asset lifecycle event (purchased/assigned/returned/lost)"),
         ],
-        lifecycle="IN_STOCK -> ASSIGNED -> IN_STOCK (returned) | LOST",
+        lifecycle="IN_STOCK -> ASSIGNED -> IN_STOCK (returned) -> ... | LOST; IN_STOCK -> RETIRED",
     ),
     Table(
         "asset_assignment", "Asset <-> Employee assignment", "bridge",
@@ -376,6 +382,8 @@ TABLES: list[Table] = [
             F("delivered_date", "date", "Delivered to employee.", required=False, rule=">= assigned_date"),
             F("acknowledged_date", "date", "Employee acknowledged receipt.", required=False, rule=">= delivered_date"),
             F("returned_date", "date", "Recovered.", required=False, rule=">= assigned_date"),
+            F("lost_reported_date", "date", "Reported lost at recovery (mutually exclusive with returned_date).",
+              required=False, rule=">= assigned_date"),
             F("assignment_status", "str", "Status as of as_of_date.", enum=ASSIGNMENT_STATUSES, derived=True),
         ],
         lifecycle="ASSIGNED -> DELIVERED -> ACKNOWLEDGED -> RETURNED | LOST",

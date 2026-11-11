@@ -144,8 +144,9 @@ def _build_workforce(ctx: GenContext) -> None:
             "contract_end_date": rand_date(rng, date(2026, 2, 1), date(2027, 6, 30)) if etype == "CONTRACTOR" else None,
         })
 
-    # ---- 3. 2026 new hires with start dates, delays, withdrawals
-    nh_lo, nh_hi = cfg.window("new_hire_start_window")
+    # ---- 3. 2026 new hires: offer accepted inside the window (never after as_of), start on a Monday
+    nh_lo, nh_hi = cfg.window("new_hire_offer_window")
+    nh_hi = min(nh_hi, ctx.as_of)
     lead_lo, lead_hi = wf["offer_lead_days"]
     for dept_name in hire_weights:
         for _ in range(dept_new[dept_name]):
@@ -161,15 +162,19 @@ def _build_workforce(ctx: GenContext) -> None:
             else:
                 role = rng.choice(_roles_of(ctx, dept_name, {"IC"}))
 
-            original = next_monday(rand_date(rng, nh_lo, nh_hi - timedelta(days=6)))
-            hire = original - timedelta(days=rng.randint(lead_lo, lead_hi))
+            hire = rand_date(rng, nh_lo, nh_hi)
+            original = next_monday(hire + timedelta(days=rng.randint(lead_lo, lead_hi)))
             start, delay, decided, withdrawn = original, 0, None, None
+            # Withdrawals / start changes only exist if they happened on or before the as-of snapshot.
             if rng.random() < sc["offer_withdrawn_rate"]:
-                withdrawn = rand_date(rng, hire + timedelta(days=1), original - timedelta(days=1))
+                when = rand_date(rng, hire + timedelta(days=1), original - timedelta(days=1))
+                withdrawn = when if when <= ctx.as_of else None
             elif rng.random() < sc["delayed_start_rate"]:
-                start = next_monday(original + timedelta(days=rng.randint(*sc["delayed_start_days"])))
-                delay = (start - original).days
-                decided = rand_date(rng, hire + timedelta(days=1), original - timedelta(days=1))
+                new_start = next_monday(original + timedelta(days=rng.randint(*sc["delayed_start_days"])))
+                when = rand_date(rng, hire + timedelta(days=1), original - timedelta(days=1))
+                if when <= ctx.as_of:
+                    start, decided = new_start, when
+                    delay = (start - original).days
 
             contract_end = None
             if etype == "CONTRACTOR":
@@ -254,14 +259,14 @@ def _build_workforce(ctx: GenContext) -> None:
             t["employee_role_history"].append({
                 "role_history_id": ids.role_history_id(ctx.counter("role_history").next()),
                 "employee_id": p["employee_id"], "role_id": p["role_id"],
-                "department_id": dept_by_name[p["dept_name"]], "effective_from": p["start_date"],
-                "effective_to": None, "change_reason": "HIRE",
+                "department_id": dept_by_name[p["dept_name"]], "manager_id": mgr,
+                "effective_from": p["start_date"], "effective_to": None, "change_reason": "HIRE",
             })
-        ctx.audit.add(at_time(rng, p["hire_date"]), "employee", p["employee_id"], "EMPLOYEE_HIRED", "SYSTEM",
+        ctx.audit.add(at_time(rng, p["hire_date"], 7, 8), "employee", p["employee_id"], "EMPLOYEE_HIRED", "SYSTEM",
                       to_state="PRE_BOARDING",
                       reason="HRIS baseline record" if p["cohort"] == "EXISTING_STAFF" else "Offer accepted; HRIS record created")
         if p["cohort"] == "EXISTING_STAFF":
-            ctx.audit.add(at_time(rng, p["start_date"]), "employee", p["employee_id"], "EMPLOYEE_STARTED", "SYSTEM",
+            ctx.audit.add(at_time(rng, p["start_date"], 7, 8), "employee", p["employee_id"], "EMPLOYEE_STARTED", "SYSTEM",
                           from_state="PRE_BOARDING", to_state="ACTIVE", reason="HRIS baseline record")
 
     # Generator-internal plan for later stages (not exported).

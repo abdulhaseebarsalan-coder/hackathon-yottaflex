@@ -26,8 +26,8 @@
   "workforce": {
     "existing_staff_ratio": 0.12,
     "existing_hire_window": ["2017-01-01", "2025-12-15"],
-    "new_hire_start_window": ["2026-01-12", "2026-12-14"],
-    "offer_lead_days": [14, 45],
+    "new_hire_offer_window": ["2026-01-01", "2026-10-22"],
+    "offer_lead_days": [14, 39],
     "employment_type_weights": {"FULL_TIME": 0.80, "CONTRACTOR": 0.15, "INTERN": 0.05},
     "work_location_weights": {"ONSITE": 0.35, "HYBRID": 0.45, "REMOTE": 0.20},
     "contract_length_days": [90, 365],
